@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>2x2 Grid w/ Column Flexbox</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main>
+    <div class="grid-item">
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+    </div>
+    <div class="grid-item">
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+    </div>
+    <div class="grid-item">
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+    </div>
+    <div class="grid-item">
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+      <div class="flex-item"></div>
+    </div>
+  </main>
+</body>
+</html>
+
+<style>
+  main
+  {
+    display: grid;
+    grid-template-columns: 200px 200px;
+    grid-template-rows: 200px 200px;
+    grid-gap: 8px;
+  }
+
+  .grid-item
+  {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background: #0083FE;
+  }
+
+  .flex-item
+  {
+    height: 15%;
+    width: 10em;
+    align-self: center;
+    background: green;
+  }
+</style>

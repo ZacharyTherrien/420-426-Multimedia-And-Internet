@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Span Variation Grid</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main>
+    <div class="grid-item one-by-one"></div>
+    <div class="grid-item two-by-one"></div>
+    <div class="grid-item one-by-two"></div>
+    <div class="grid-item two-by-two"></div>
+  </main>
+</body>
+</html>
+
+<style>
+  main
+  {
+    display: grid;
+    grid-template-columns: 100px 250px;
+    grid-template-rows: 100px 250px;
+    grid-gap: 8px;
+  }
+
+  .one-by-one
+  {
+    background: #7C39FF;
+  }
+
+  .two-by-one
+  {
+    background: purple;
+  }
+
+  .one-by-two
+  {
+    background: #B734FF;
+  }
+
+  .two-by-two
+  {
+    background: #EE66F4;
+  }
+</style>

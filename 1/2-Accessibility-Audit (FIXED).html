@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Test site</title>
+</head>
+<body>
+    <header>
+        <a href="http://johnabbott.qc.ca" aria-label="John Abbott College website"></a>
+            <img src="JAC_Logo.png" alt="" height="100%">
+        </a>
+    </header>
+    <nav>
+        <ol>
+            <li><a href="">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ol>
+    </nav>
+    <main>
+        <form>
+            <h1>John Abbott College registration page</h1>
+            <div class="content">
+                <label for="Name">Name: </label><input aria-label="name" type="text" name="" id=""/>
+                <label for="Email">Email: </label><input aria-label="email" type="email" name="" id=""/>
+                <label for="Message">Message: </label><textarea aria-label="message" name="" id="" cols="30" rows="10"></textarea>
+                <input type="button" value="Submit"/>
+            </div>
+        </form>
+    </main>
+    <footer>I_MAIN_SHULK_IN_SMASH &copy; 2019</footer>
+</body>
+</html>
+<style>
+    body, html
+    {
+        padding: 0;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        height: 100%;
+    }
+
+    body
+    {
+        display: grid;
+        grid-template-columns: 20% 80%;
+        grid-template-rows: 10% 80% 10%;
+    }
+    
+    header
+    {
+        background-color: #574b90;
+        grid-column: 1 / 3;
+        grid-row: 1 / 2;
+    }
+    
+    nav
+    {
+        background-color: #FFFFFF;
+        color: #0000ee;
+        font-size:16px;
+        font-weight: normal;
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        text-align: left;
+        padding: 1em;
+    }
+    
+    h1
+    {
+        text-align: center;
+    }
+
+    main
+    {
+        background-color: #3dc1d3;
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+    }
+
+    .content
+    {
+        margin-left: 10px;
+    }
+
+    label
+    {
+        margin-top: 15px;
+        display: block;
+    }
+
+    footer
+    {
+        background-color: #0000FF;
+        grid-column: 1 / 3;
+        grid-row: 3 / 4;
+        color: #FFFFFF;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
