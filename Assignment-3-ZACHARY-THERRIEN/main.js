@@ -25,7 +25,7 @@ function handleUpcoming(NextLaunch) {
     let UpcomingVehicleText = document.createTextNode(NextLaunch.rocket.rocket_name);
     let UpcomingLocationText = document.createTextNode(NextLaunch.launch_site.site_name_long);
 
-    //Get Local time
+    //Get Local time & date
     let LaunchDate = NextLaunch.launch_date_local.split("T");
     let UpcomingDateText = document.createTextNode(LaunchDate[0]);
     let UpcomingTimeleText = document.createTextNode(LaunchDate[1]);
@@ -47,6 +47,11 @@ function FindLaunches(){
             displayPastLaunches(data)
         })
         .catch(function(error) {
+            let row = document.createElement("tr");
+            let PastLaunchesErrorCell = document.createElement("td");
+            let PastLaunchesErrorText = documnent.createTextNode("Erro fetching past lauches!");
+            PastLaunchesErrorCell.appendChild(PastLaunchesErrorText);
+            row.appendChild(PastLaunchesErrorCell);
             console.log(error);
         });
     }
@@ -63,24 +68,46 @@ function displayPastLaunches(data) {
         let TableBody = document.getElementById("LaunchesTable");
         TableBody.innerHTML = "";
         for(let i = 0; i < limit; i++){
+            //Create a row and 3 cells
             let row = document.createElement("tr");
             let missionCell = document.createElement("td");
             let rocketCell = document.createElement("td");
             let dateCell = document.createElement("td");
 
+            //Create text nodes
             let missionText = document.createTextNode(data[i].mission_name);
             let rocketText = document.createTextNode(data[i].rocket.rocket_name);
-            let dateText = document.createTextNode(data[i].launch_date_utc);
 
+            //Get local date and creqate its text node
+            let dateString = data[i].launch_date_utc.split("T");
+            let dateText = document.createTextNode(dateString[0]);
+
+            //Append text to its cell
             missionCell.appendChild(missionText);
             rocketCell.appendChild(rocketText);
             dateCell.appendChild(dateText);
 
+            //Append cells to the row
             row.appendChild(missionCell);
             row.appendChild(rocketCell);
             row.appendChild(dateCell);
 
+            //Finally, append row to table, and repeat for each rocket.
             TableBody.appendChild(row);
         }
     }
+}
+/************************************ SELECTION ROCKETS***************************************/
+const url = "https://api.spacexdata.com/v3/";
+fetch(url)
+.then(response => response.json())
+.then(data => {
+    doStuff(data)
+})
+.catch(function(error) {
+    console.log(error);
+});
+
+function doStuff(data) {
+    conole.log(data);
 }
