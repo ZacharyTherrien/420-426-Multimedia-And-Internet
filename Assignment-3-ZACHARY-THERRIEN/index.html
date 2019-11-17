@@ -14,16 +14,22 @@
                 <h2>Upcoming Launch</h2>
                 <ul>
                     <li><h3 id="UpcomingVehicle">Name of vehicle: </h3></li>
-                    <li><h3 id="UpcomingDate">Date (in unix, git good): </h3></li>
+                    <li><h3 id="UpcomingDate">Date (local): </h3></li>
+                    <li><h3 id="UpcomingTime">Time (local): </h3></li>
+                    <li><h3 id="UpcomingLocation">Locatoin: </h3></li>
                 </ul>
             </div>
             <div id="Sections_Limit">
                 <h2>Past X Launches</h2>
                 <table id="Launches">
-                    
+                    <th>Mission Name</th>
+                    <th>Rocket's Name</th>
+                    <th>Date (UTC)</th>
+                    <tbody id="LaunchesTable"></tbody>
                 </table>
                 <h3>Enter the previous number of launches you would like to see.</h3>
-                <form type="text"></form>
+                <input type="text" id="numLimit"></input>
+                <input type="button" onclick="FindLaunches()">
             </div>
             <div id="Section_Rockets">
                 <h2>SpaceX's 4 Rockets</h2>
