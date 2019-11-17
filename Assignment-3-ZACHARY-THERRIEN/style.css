@@ -1,3 +1,68 @@
+body{
+    display: grid;
+    margin: 0px;
+    background-color: #3A3D45;
+    color: #dbdee1
+    ;
+}
+
+@media (min-width: 0px){
+    body{
+        grid-row: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr;
+        grid-template-areas: 
+        "header"
+        "next"
+        "rockets"
+        "limit";
+        padding: 20px;
+    }
+}
+
+@media (min-width:900px){    
+    body{
+        grid-template-areas: 
+        "header next"
+        "limit rockets";
+        padding: 10px;
+    }
+
+    #Section_Next{
+        margin-left: 30px;
+    }
+
+    #Section_Rockets{
+        margin-left: 30px;
+    }
+
+    #Section_Limit{
+        display: flex;
+        align-content: top;
+    }
+}
+
+header{
+    grid-area: header;
+    display: flex;
+    justify-content: center;;
+}
+
+#Section_Next{
+    grid-area: next;
+}
+
+#Sections_Limit{
+    grid-area: limit;
+}
+
+#Section_Rockets{
+    grid-area: rockets;
+}
+
+h1, h2{
+    text-decoration: underline;
+}
+
 table, th,td{
     border-style: solid;
 }
@@ -8,4 +73,12 @@ table{
 
 th, td{  
     padding: 10px;
+}
+
+#Launches, #buttonDisplayLaunches{
+    margin-top: 15px;
+}
+
+#Rocket_Lineup-Buttons{
+    list-style: none;
 }

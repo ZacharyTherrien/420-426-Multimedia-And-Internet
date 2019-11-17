@@ -9,7 +9,6 @@
         <header>
             <h1>SpaceX Fan (Project) Site</h1>           
         </header>
-        <main>
             <div id="Section_Next">
                 <h2>Upcoming Launch</h2>
                 <ul>
@@ -21,20 +20,20 @@
             </div>
             <div id="Sections_Limit">
                 <h2>Past X Launches</h2>
+                <h3>Enter the previous number of launches you would like to see.</h3>
+                <input type="text" id="numLimit"></input>
+                <input type="button" id="buttonDisplayLaunches" onclick="FindLaunches()" value="Find past launches">
                 <table id="Launches">
                     <th>Mission Name</th>
                     <th>Rocket's Name</th>
                     <th>Date (UTC)</th>
                     <tbody id="Launches_Table"></tbody>
                 </table>
-                <h3>Enter the previous number of launches you would like to see.</h3>
-                <input type="text" id="numLimit"></input>
-                <input type="button" onclick="FindLaunches()" value="Find past launches">
             </div>
             <div id="Section_Rockets">
                 <h2>SpaceX's 4 Rockets</h2>
                 <h3>Select a rocket's information</h3>
-                <ul>
+                <ul id="Rocket_Lineup-Buttons">
                     <li><button value="falcon1" id="falcon1" onclick="RocketChosen(this.value)">falcon1</button></li>
                     <li><button value="falcon9" id="falcon9" onclick="RocketChosen(this.value)">falcon9</button></li>
                     <li><button value="falconheavy" id="falconheavy" onclick="RocketChosen(this.value)">falconheavy</button></li>
@@ -47,6 +46,5 @@
                     <tbody id="Rocket_Selected"></tbody>
                 </table>
             </div>
-        </main>
     </body>
 </html>
