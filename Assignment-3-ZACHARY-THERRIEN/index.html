@@ -25,7 +25,7 @@
                     <th>Mission Name</th>
                     <th>Rocket's Name</th>
                     <th>Date (UTC)</th>
-                    <tbody id="LaunchesTable"></tbody>
+                    <tbody id="Launches_Table"></tbody>
                 </table>
                 <h3>Enter the previous number of launches you would like to see.</h3>
                 <input type="text" id="numLimit"></input>
@@ -35,18 +35,18 @@
                 <h2>SpaceX's 4 Rockets</h2>
                 <h3>Select a rocket's information</h3>
                 <ul>
-                    <li><button value="falcon1" id="falcon1">falcon1</button></li>
-                    <li><button value="falcon9" id="falcon9">falcon9</button></li>
-                    <li><button value="falconheavy" id="falconheavy">falconheavy</button></li>
-                    <li><button value="starship" id="starship">starship</button></li>
+                    <li><button value="falcon1" id="falcon1" onclick="RocketChosen(this.value)">falcon1</button></li>
+                    <li><button value="falcon9" id="falcon9" onclick="RocketChosen(this.value)">falcon9</button></li>
+                    <li><button value="falconheavy" id="falconheavy" onclick="RocketChosen(this.value)">falconheavy</button></li>
+                    <li><button value="starship" id="starship" onclick="RocketChosen(this.value)">starship</button></li>
                 </ul>
-                <table id="Rocket_Selected">
-                    
+                <table id="Rocket_Selection">
+                    <th>Cost</th>
+                    <th>Height (meters)</th>
+                    <th>Description (from Wikipedia)</th>
+                    <tbody id="Rocket_Selected"></tbody>
                 </table>
             </div>
         </main>
-        <footer>
-            
-        </footer>
     </body>
 </html>

@@ -65,29 +65,29 @@ function displayPastLaunches(data) {
         limit = data.Length - 1;   
 
     if(limit > 0 && Number.isInteger(parseInt(limit))){
-        let TableBody = document.getElementById("LaunchesTable");
+        let TableBody = document.getElementById("Launches_Table");
         TableBody.innerHTML = "";
         for(let i = 0; i < limit; i++){
-            //Create a row and 3 cells
+            //Create a row and 3 cells.
             let row = document.createElement("tr");
             let missionCell = document.createElement("td");
             let rocketCell = document.createElement("td");
             let dateCell = document.createElement("td");
 
-            //Create text nodes
+            //Create text nodes.
             let missionText = document.createTextNode(data[i].mission_name);
             let rocketText = document.createTextNode(data[i].rocket.rocket_name);
 
-            //Get local date and creqate its text node
+            //Get local date and creqate its text node.
             let dateString = data[i].launch_date_utc.split("T");
             let dateText = document.createTextNode(dateString[0]);
 
-            //Append text to its cell
+            //Append text to its cell.
             missionCell.appendChild(missionText);
             rocketCell.appendChild(rocketText);
             dateCell.appendChild(dateText);
 
-            //Append cells to the row
+            //Append cells to the row.
             row.appendChild(missionCell);
             row.appendChild(rocketCell);
             row.appendChild(dateCell);
@@ -98,16 +98,45 @@ function displayPastLaunches(data) {
     }
 }
 /************************************ SELECTION ROCKETS***************************************/
-const url = "https://api.spacexdata.com/v3/";
-fetch(url)
-.then(response => response.json())
-.then(data => {
-    doStuff(data)
-})
-.catch(function(error) {
-    console.log(error);
-});
+let urlRocketBase = "https://api.spacexdata.com/v3/rockets";
+function RocketChosen(RocketChoice){
+    let urlRocketChoice = urlRocketBase + "/" + RocketChoice;
+    fetch(urlRocketChoice)
+    .then(response => response.json())
+    .then(data => {
+        displayRocketInfo(data)
+    })
+    .catch(function(error) {
+        console.log(error);
+    });
 
-function doStuff(data) {
-    conole.log(data);
+    function displayRocketInfo(TheRocket) {
+        console.log(TheRocket);
+        //Get the table body and clear it.
+        let TableBody = document.getElementById("Rocket_Selected");
+        TableBody.innerHTML = "";
+
+        //Create elements row and table data.
+        let row = document.createElement("tr");
+        let CostCell = document.createElement("td");
+        let HeightCell = document.createElement("td");
+        let DescriptionCell = document.createElement("td");
+
+        //Create text nodes for the table.
+        let CostText = document.createTextNode(TheRocket.cost_per_launch);
+        let HeightText = document.createTextNode(TheRocket.height.meters);
+        let DescriptionText = document.createTextNode(TheRocket.description);
+
+        //Append text nodes to their respective table data.
+        CostCell.appendChild(CostText);
+        HeightCell.appendChild(HeightText);
+        DescriptionCell.appendChild(DescriptionText);
+
+        //Append cell nodes to row and then row to table.
+        row.appendChild(CostCell);
+        row.appendChild(HeightCell);
+        row.appendChild(DescriptionCell);
+
+        TableBody.appendChild(row);
+    }
 }

@@ -2,6 +2,10 @@ table, th,td{
     border-style: solid;
 }
 
+table{
+    max-width: 800px;
+}
+
 th, td{  
     padding: 10px;
 }
