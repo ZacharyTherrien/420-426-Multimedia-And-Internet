@@ -1,0 +1,72 @@
+body{
+    display: grid;
+    margin: 0px;
+    background-color: #3A3D45;
+    color: #dbdee1;
+}
+
+@media (min-width: 0px){
+    body{
+        grid-template-areas: 
+        "header"
+        "next"
+        "rockets"
+        "limit";
+        padding: 20px;
+    }
+}
+
+@media (min-width:900px){    
+    body{
+        grid-template-columns: 2fr 3fr;
+        grid-template-areas: 
+        "header next"
+        "limit rockets";
+        padding: 10px;
+    }
+}
+    #Section_Next, #Section_Rockets, #Section_Limit{
+        margin-left: 30px;
+    }
+
+header{
+    grid-area: header;
+    display: flex;
+    justify-content: center;
+}
+
+#Section_Next{
+    grid-area: next;
+}
+
+#Section_Limit{
+    grid-area: limit;
+}
+
+#Section_Rockets{
+    grid-area: rockets;
+}
+
+h1, h2{
+    text-decoration: underline;
+}
+
+table, th,td{
+    border-style: solid;
+}
+
+table{
+    max-width: 800px;
+}
+
+th, td{  
+    padding: 10px;
+}
+
+#Launches, #buttonDisplayLaunches{
+    margin-top: 15px;
+}
+
+#Rocket_Lineup-Buttons{
+    list-style: none;
+}
