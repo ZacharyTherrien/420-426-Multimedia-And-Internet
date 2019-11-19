@@ -51,37 +51,58 @@ A new method, instead of a line, is required.*/
 
 /*Animating a Bubble!*/
 const START = 100;
+const MAXBUBBLES = 5;
 
 class Bubble{
     constructor(x, y){
         this.x = x;
         this.y = y;
-        this.radius = 50;
+        this.xVector= 1;
+        this.yVector = 1;
+        this.radius = 25;
     }
+    //Used like a private method.
     draw(){
         context.strokeStyle = "#00FFFF";
         context.beginPath();
-        context.arc(this.x++,this.y--,this.radius,0,2*Math.PI);
+        this.x += this.xVector;
+        this.y += this.yVector;
+        context.arc(this.x,this.y,this.radius,0,2*Math.PI);
         context.closePath();
         context.stroke();
     }
+    //Used like a public method.
     update(){
+        //If out of bounds, change to random position.
         if(this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0){
-            this.x = (Math.random()*100);
-            this.y = (Math.random()*100);
+            this.x = (Math.floor(Math.random()*250));
+            this.y = Math.floor((Math.random()*150));
+            //Change its vector(s).
+            if(Math.random() >= 0.25)
+                this.xVector = this.xVector * -1;
+            else if(Math.random() >= 0.5)
+                this.yVector = this.yVector * -1;
+            else{
+                this.xVector = this.xVector * -1;
+                this.yVector = this.yVector * -1;
+            }
         }
-
+        //Execute the drawing.
         this.draw();
     }
 }
 
-let myBubble = new Bubble(100,100);
+//Create the bubbles.
+let myBubbles = new Array(MAXBUBBLES);
+for(let i = 0; i < MAXBUBBLES; i++)
+    myBubbles[i] = new Bubble(Math.floor(Math.random() * 250), Math.floor(Math.random() * 150));
 
+//Function to animate them.
 function animate(){
     requestAnimationFrame(animate);
     context.clearRect(0,0,canvas.width,canvas.height);
-
-    myBubble.update();
+    for(let i = 0; i < MAXBUBBLES; i++)
+        myBubbles[i].update();
 }
 
 animate();
