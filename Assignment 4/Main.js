@@ -16,6 +16,12 @@ const MENU_X = canvas.width-75;
 const MENU_Y = canvas.height-50;
 const MenuOptions = {"Attack":0,"Defend":1,"GiantMax":2,"Flee":3};
 const MenuOptionsArray = ["Attack", "Defend", "GiantMax", "Flee"];
+const MenuDescriptions = [Attack = ["Select an Attack."], 
+Defend = ["Defend", "This will increase", "your defense stat"],
+GiantMax = ["Ability unavailable.","Win once to unlock."],
+Flee = ["Exit the battle.", "Automatic loss."]];
+const GoBackDescription = ["Return to", "main menu."];
+let CurrentDescription = "";
 let InMatch = false;
 let StartedGame = false;
 let turn;
@@ -37,11 +43,11 @@ function animate(){
         if(AcceptButtonPressed()) //Start match, set boolean values too.
             MatchInitiation();
     }
+    if(!StartedGame){       //Create Player & Enemy before start of game           
+        CreateCharacters();
+        StartedGame = true;
+    }
     if(InMatch & !Won && !Lost){
-        if(!StartedGame){ //Create Player & Enemy before start of game           
-            CreateCharacters();
-            StartedGame = true;
-        }
         /********************** STANDBY PHASE ************************/
         Player.draw();
         Enemy.draw();
@@ -50,18 +56,19 @@ function animate(){
             MenuDraw(); //Draw current menu for player.
         else
             MenuAtkDraw();
-        CursorUpdate(); //This will check the key pressed.
-        CursorDraw(); //This will move according to what's pressed.
-        
-        //Based on if somethi0ng was selected, perform it.
-        //And then enable the battle phase, unless attack or flee selected.
-        if(!ChoosingAtk)
+        CursorUpdate();  //This will check the key pressed.
+        CursorDraw();    //This will move according to what's pressed.
+        if(!ChoosingAtk) //If something selected, perform it, enable battle phase, unless attack or flee selected.
             MenuSelect();
         else
             AtkSelect();
         /*********************** BATTLE PHASE ************************/
-        if(false){
+        if(Battling){
+            //For whoever goes first and then second:
+            //Display action is description box.
+            //Perform drawing.
             turn++; //Increase turn after player & enemy's move.
+            Battling = false;
         }
         /************************* END PHASE *************************/
         if(Won || Lost){
@@ -74,14 +81,6 @@ function animate(){
     key = ''; //Set the current key to blank so it can only be registered once.
 }
 
-function AcceptButtonPressed(){
-    return key == 'z';
-}
-
-function TurnDraw(){
-    context.fillText(`Turn: ${turn}`,10,20);
-}
-
 function MatchInitiation(){
     InMatch = true;
     Won = false;
@@ -92,6 +91,10 @@ function MatchInitiation(){
     key = '';
 }
 
+function TurnDraw(){
+    context.fillText(`Turn: ${turn}`,10,20);
+}
+
 function CreateCharacters(){
     /*Initialize the moves for both player and enemies and them create them at the start.*/
     const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2], AttackList[3]];
@@ -100,6 +103,9 @@ function CreateCharacters(){
     Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
 
+function AcceptButtonPressed(){
+    return key == 'z';
+}
 
 function MenuSelect(){
     if(AcceptButtonPressed()){
@@ -108,8 +114,10 @@ function MenuSelect(){
                 ChoosingAtk = true;
                 break;
             case MenuOptions.Defend:
+                Battling = true;
                 break;
-            case MenuOptions.getContext:
+            case MenuOptions.GiantMax:
+                Battling = true;
                 break;
             case MenuOptions.Flee:
                 Lost = true;
@@ -122,10 +130,13 @@ function AtkSelect(){
     if(AcceptButtonPressed()){
         switch(choice){
             case 0:
+                Battling = true;
                 break;
             case 1:
+                Battling = true;
                 break;
             case 2:
+                Battling = true;
                 break;
             case 3:
                 ChoosingAtk = false;
@@ -155,6 +166,13 @@ function CursorUpdate(){
         choice = CHOICEMAX;
     else if(choice > CHOICEMAX) //Passes bottom boundary, wrap to top.
         choice = CHOICEMIN;
+    if(!ChoosingAtk) //Display a description of what the user's cursor is hovering over.
+        CurrentDescription = MenuDescriptions[choice];
+    else
+        if(choice != 3)
+            CurrentDescription = Player.Moves[choice].Description;
+        else 
+        CurrentDescription = GoBackDescription;
 }
 function CursorDraw(){
     context.beginPath();
@@ -171,7 +189,7 @@ function CursorDraw(){
 function MenuDraw(){
     context.strokeRect(MENU_X,MENU_Y,75,50); //Print the menu box and then its content.
     PrintMenuOption(MenuOptionsArray);
-    DescriptionDraw();                     //Print the box for descriptions.    
+    DescriptionDraw(CurrentDescription);                     //Print the box for descriptions.    
 }
 function PrintMenuOption(Options){
     context.font = "10px Georgia";
@@ -184,10 +202,15 @@ function MenuAtkDraw(){
     let Moveslist = Player.Moves.map(move => move.Name);
     PrintMenuOption(Moveslist);
     context.fillText("Go Back",MENU_X+10,MENU_Y + (3 * 10) + 15); //Print a fourth option to go back.
-    DescriptionDraw(); //Attacks will have a description too!
+    DescriptionDraw(CurrentDescription); //Attacks will have a description too!
 }
-function DescriptionDraw(){
+function DescriptionDraw(Description){
     context.strokeRect(MENU_X-75,MENU_Y,75,50);
+    context.font = "7px Georgia";
+    for(let line = 0; line < Description.length; line++){
+        context.fillText(Description[line],MENU_X-70,MENU_Y+10+(line*10));
+    }
+
 }
 function DisplayMainMenu(){         //Print the whole start menu here.
     context.font = "20px Georgia";
