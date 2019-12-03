@@ -16,8 +16,10 @@ class Shape{
     DisplayDamage(Atk){
         let multiplier = 100;           //Used to slow down the speed of which HP decreases!
         this.DisplayHP -= Atk / multiplier;
-        if(this.DisplayHP < 0)
+        if(this.DisplayHP < 0){
             this.DisplayHP = 0;
+            this.HP = 0;
+        }
     }
 
     ReceiveDamage(Atk){

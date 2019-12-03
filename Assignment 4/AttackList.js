@@ -1,5 +1,5 @@
 const AttackList = [
-    new WeaponAttack('Excalibur!', 100,
+    new WeaponAttack('Excalibur!', 200,
     [AtkStat(100), "A shining beam, hope.", "Its name is:" ,"Ex-CALIBUUUR!!"]),
     new WeaponAttack('Sword Poke', 25,
     [AtkStat(25) ,"Some simple attack.", "One simply pokes."]),

@@ -29,7 +29,7 @@ Flee = ["Exit the battle.","Automatic loss."]];
 const GoBackDescription = ["Return to","main menu."];
 let CurrentDescription = "";
 let InMatch = false;
-let StartedGame = false;
+let StartedMatch = false;
 let turn;
 let ChoiceSelected = false;
 let ChoosingAtk = false;
@@ -40,16 +40,15 @@ let AtkPhase = false; //Unused
 let AtkDrawComplete;
 let Won = false;
 let Lost = false;
+let EndOfMatch = false;
 //#endregion
 /************************************************************************/
 
 /*
  *      TODO: 
- *      - HAVE ATK DESCRIPTION RESULT DISPLAY WITHOUT THE ATK DESCRIPTION THERE.
- *      - GO FROM ATK RESULT DESCRIPTION BACK TO STANDBY PHASE.
- *      - FOR NOW, WE ARE GOING TO GET STUCK IN THE ATK SECTION.
- * 
- * 
+ *      - ISSUES ONCE DEFEATING AN ENEMY!
+ *      - ONCE ENTERING THE MATCH AGAIN, IT DOES NOT START PROPERLY
+ *      - CHECK BOOLEAN VARIABLES FOR ATTACK PHASE.
  */
 
 
@@ -60,16 +59,16 @@ animate();
 function animate(){
     requestAnimationFrame(animate);
     context.clearRect(0,0,canvas.width,canvas.height);
-    if(!InMatch){
+    if(!InMatch && !EndOfMatch){
         DisplayMainMenu();
         if(AcceptButtonPressed())   //Start match, set boolean values too.
             MatchInitiation();
     }
-    if(!StartedGame){               //Create Player & Enemy before start of game           
+    if(!StartedMatch){               //Create Player & Enemy before start of game           
         CreateCharacters();
-        StartedGame = true;
+        StartedMatch = true;
     }
-    if(InMatch & !Won && !Lost){
+    if(InMatch && !Won && !Lost){
         /********************** STANDBY PHASE ************************/
         Player.draw();
         Enemy.draw();
@@ -99,10 +98,11 @@ function animate(){
                 EndBattlePhase();
         }
         /************************* END PHASE *************************/
-        EndPhase()
-;        if(Won || Lost){
-            InMatch = false;    //Exit match not that a winner has been decided.
-        }
+        EndPhase();
+    }
+    if(EndOfMatch){
+        key = '';
+        DisplayEndResult();
     }
     /************************ END OF MATCH ***********************/
     //Print this after to make it keep looping properly please!
@@ -112,6 +112,7 @@ function animate(){
 
 function MatchInitiation(){
     InMatch = true;
+    StartedMatch = false;
     Won = false;
     Lost = false;
     choice = MenuOptions.Attack;
@@ -177,23 +178,46 @@ function AtkSelect(){
 }
 
 function EndBattlePhase(){
-    
+    turn++;
 }
 
 function EndPhase(){
     if(Enemy.HP <= 0)
-        Win = true;
+        Won = true;
     else if(Player.HP <= 0)
-        Lose = true;
+        Lost = true;
+    if(Won || Lost){
+        EndOfMatch = true;    //Exit match not that a winner has been decided.
+    }
 }
+
+function DisplayEndResult(){
+    let EndResult;
+    if(Won){
+        EndResult = ["Congratulations!", "A winner is you!"];
+    }
+    else if(Lost){
+        EndResult = ["Insert coin to try again."];
+    }
+    Player.draw()
+    Enemy.draw();
+    TurnDraw();
+    MenuBox();
+    DescriptionDraw(EndResult);
+    if(AcceptButtonPressed){
+        InMatch = false;
+        EndOfMatch = false;
+        key = '';
+    }
+}
+
 //#endregion
 /************************************************************************/
 
-/***************************** ATTACK FUNCTIONS *****************************/
+//#region /***************************** ATTACK FUNCTIONS *****************************/
 function PerformAtks(){                         //The main Atk function
     let AtkDesc;
     AtkDesc = DecideAttacker();
-    //DescriptionDraw(AtkDesc);
     AttackAction(AtkDesc);
 }
 
@@ -237,9 +261,7 @@ function DecideAttacker(){
 function AttackAction(Desc){                        //Here, it will display the attack description and animation.
     if(PlayerAttacking){
         //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
-        //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.
-        
-        
+        //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.   
         DescriptionDraw(Desc);
         /* 
                 FIRST: DISPLAY THE ANIMATION!!!!!
@@ -251,29 +273,25 @@ function AttackAction(Desc){                        //Here, it will display the 
 
                 NEXT: CALCULATE AND DECREASE HP!!!!!!
         */
-        
-        
        AnimateDamage();
     }
     else{
         //Enemy.Moves[choice].draw();               //TODO: COMPLETE THIS AFTER PLAYER & ENENMY ATTACK.
         DescriptionDraw(Desc);
-        
-        /*TEMP STUFF:*/
-        Battling = false;
     }
 }
 
 function AnimateDamage(){
     if(PlayerAttacking){
         let Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);
-        if(Enemy.DisplayHP > Enemy.HP - Damage){
+        if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){
             Enemy.DisplayDamage(Damage);
         }
         else{
             Enemy.ReceiveDamage(Damage);
             PlayerAttacking = false;
             //TEMP STUFF:
+            //THIS SHOULD BE PERFORMED AFTER THE LAST SHAPE HAS ATTACKED PLEASE!
             Battling = false;
         }
     }
@@ -329,16 +347,10 @@ function CursorDraw(){
 
 //#region /**************************** MENU DRAW FUNCTIONS ****************************/
 function MenuDraw(){
-    context.strokeRect(MENU_X,MENU_Y,MENU_WIDTH,MENU_HEIGHT);       //Print the menu box and then its content.
+    MenuBox();
     PrintMenuOption(MenuOptionsArray);
     if(!Battling)                                                   //Do not print while in battle phase.
         DescriptionDraw(CurrentDescription);                        //Print the box for descriptions.    
-}
-function PrintMenuOption(Options){
-    context.font = "12px Georgia";
-    for(let i = 0; i < Options.length; i++){
-        context.fillText(Options[i],MENU_X+15,MENU_Y + (i * 15) + 20);  //Display options and space them out.
-    }
 }
 function MenuAtkDraw(){
     context.strokeRect(MENU_X,MENU_Y,MENU_WIDTH,MENU_HEIGHT);
@@ -348,12 +360,24 @@ function MenuAtkDraw(){
     if(!Battling)                                                   //Do not print while in battle phase.
         DescriptionDraw(CurrentDescription);                        //Attacks will have a description too!
 }
+function MenuBox(){
+    context.strokeRect(MENU_X,MENU_Y,MENU_WIDTH,MENU_HEIGHT);       //Print the menu box and then its content.
+}
+function PrintMenuOption(Options){
+    context.font = "12px Georgia";
+    for(let i = 0; i < Options.length; i++){
+        context.fillText(Options[i],MENU_X+15,MENU_Y + (i * 15) + 20);  //Display options and space them out.
+    }
+}
 function DescriptionDraw(Description){                              //Takes string array & displays it in description box.
-    context.strokeRect(DESC_X,DESC_Y,MENU_WIDTH-1,MENU_HEIGHT);
+    DescriptionBox();
     context.font = "10px Georgia";
     for(let line = 0; line < Description.length; line++){
         context.fillText(Description[line],DESC_X+5,DESC_Y+12+(line*12));
     }
+}
+function DescriptionBox(){
+    context.strokeRect(DESC_X,DESC_Y,MENU_WIDTH-1,MENU_HEIGHT);
 }
 function DisplayMainMenu(){                                         //Print the whole start menu here.
     context.font = "20px Georgia";
@@ -364,6 +388,11 @@ function DisplayMainMenu(){                                         //Print the 
     context.fillText("- Z to select option", canvas.width / 8, canvas.height / 2 + 35);
     context.font = "12px Georgia";
     context.fillText("Press Z to start!", canvas.width / 8, canvas.height / 2 + 60);
+}
+
+function DisplayEndMenu(){
+    context.font = "30px Comic Sans";
+    context.fillText("GJ you won.", canvas.widht + 10, canvas.height+10);
 }
 //#endregion 
 /**************************************************************************************/
