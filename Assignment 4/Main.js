@@ -95,9 +95,12 @@ function animate(){
             //Perform drawing.
             //turn++;             //Increase turn after player & enemy's move.
             //Battling = false;   //Once both players are done their actions, end the battle phase.
+            if(!Battling)
+                EndBattlePhase();
         }
         /************************* END PHASE *************************/
-        if(Won || Lost){
+        EndPhase()
+;        if(Won || Lost){
             InMatch = false;    //Exit match not that a winner has been decided.
         }
     }
@@ -124,8 +127,8 @@ function TurnDraw(){
 
 function CreateCharacters(){
     /*Initialize the moves for both player and enemies and them create them at the start.*/
-    const PlayerMoves = [AttackList[3], AttackList[1], AttackList[2]];
-    const EnemyMoves = [AttackList[0], AttackList[1], AttackList[2]];
+    const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
+    const EnemyMoves = [AttackList[3], AttackList[1], AttackList[2]];
     Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
     Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
@@ -173,22 +176,36 @@ function AtkSelect(){
     }
 }
 
-function PerformAtks(){
+function EndBattlePhase(){
+    
+}
+
+function EndPhase(){
+    if(Enemy.HP <= 0)
+        Win = true;
+    else if(Player.HP <= 0)
+        Lose = true;
+}
+//#endregion
+/************************************************************************/
+
+/***************************** ATTACK FUNCTIONS *****************************/
+function PerformAtks(){                         //The main Atk function
     let AtkDesc;
     AtkDesc = DecideAttacker();
-    DescriptionDraw(AtkDesc);
-    //AttackAction(AtkDesc);
+    //DescriptionDraw(AtkDesc);
+    AttackAction(AtkDesc);
 }
 
 function DecideAttacker(){
     let Desc;
-    if(Player.Spd > Enemy.Spd){         //True => Player goes first.
+    if(Player.Spd > Enemy.Spd){                 //True => Player goes first.
         if(FirstAtk){
             PlayerAttacking = true;
             Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
             //DescriptionDraw(Desc);
             //Once Done:
-            FirstAtk = false;
+            ///FirstAtk = false;
         }
         else{
             //PlayerAttacking = false;
@@ -198,7 +215,7 @@ function DecideAttacker(){
             FirstAtk = true;
         }
     }
-    else{                               //False => Enemy goes first.
+    else{                                       //False => Enemy goes first.
         if(FirstAtk){
             //PlayerAttacking = false;
             Desc = ['Enemy used:',`${Player.Moves[choice].Name}!`];
@@ -217,20 +234,59 @@ function DecideAttacker(){
     return Desc
 }
 
-function AttackAction(Desc){                //Here, it will display the attack description and animation.
+function AttackAction(Desc){                        //Here, it will display the attack description and animation.
     if(PlayerAttacking){
         //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
         //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.
+        
+        
         DescriptionDraw(Desc);
+        /* 
+                FIRST: DISPLAY THE ANIMATION!!!!!
+
+                AND
+                
+                THEN
+
+
+                NEXT: CALCULATE AND DECREASE HP!!!!!!
+        */
+        
+        
+       AnimateDamage();
     }
     else{
-        //Enemy.Moves[choice].draw();     //TODO: COMPLETE THIS AFTER PLAYER & ENENMY ATTACK.
+        //Enemy.Moves[choice].draw();               //TODO: COMPLETE THIS AFTER PLAYER & ENENMY ATTACK.
         DescriptionDraw(Desc);
+        
+        /*TEMP STUFF:*/
+        Battling = false;
     }
 }
 
+function AnimateDamage(){
+    if(PlayerAttacking){
+        let Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);
+        if(Enemy.DisplayHP > Enemy.HP - Damage){
+            Enemy.DisplayDamage(Damage);
+        }
+        else{
+            Enemy.ReceiveDamage(Damage);
+            PlayerAttacking = false;
+            //TEMP STUFF:
+            Battling = false;
+        }
+    }
+    else{
+    }
+}
+
+function CalculateDamage(PlayerAtk, MoveAtk){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
+    return PlayerAtk + MoveAtk;
+}
+
 //#endregion
-/************************************************************************/
+/**************************************************************************************/
 
 //#region /***************************** CURSOR FUNCTIONS *****************************/
 function CursorUpdate(){
