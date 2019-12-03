@@ -75,17 +75,23 @@ class Bubble{
     update(){
         //If out of bounds, change to random position.
         if(this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0){
-            this.x = (Math.floor(Math.random()*250));
-            this.y = Math.floor((Math.random()*150));
-            //Change its vector(s).
-            if(Math.random() >= 0.25)
-                this.xVector = this.xVector * -1;
-            else if(Math.random() >= 0.5)
-                this.yVector = this.yVector * -1;
-            else{
-                this.xVector = this.xVector * -1;
-                this.yVector = this.yVector * -1;
-            }
+            /*Make it spawn somewhere else.*/
+            // this.x = (Math.floor(Math.random()*250));
+            // this.y = Math.floor((Math.random()*150));
+            // //Change its vector(s).
+            // if(Math.random() >= 0.25)
+            //     this.xVector = this.xVector * -1;
+            // else if(Math.random() >= 0.5)
+            //     this.yVector = this.yVector * -1;
+            // else{
+            //     this.xVector = this.xVector * -1;
+            //     this.yVector = this.yVector * -1;
+            //
+            /*Make it bounce off wall*/
+                if(this.x > canvas.width || this.x < 0)
+                    this.xVector = -1 * this.xVector;
+                else if(this.y > canvas.height || this.y < 0)
+                    this.yVector = -1 * this.yVector;
         }
         //Execute the drawing.
         this.draw();
