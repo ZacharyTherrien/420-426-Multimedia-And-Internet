@@ -12,6 +12,7 @@ const ENEMY_X = canvas.width - 120;
 const ENEMY_Y = 30;
 let key;
 let choice = 0;
+let choiceEnemy = 0;
 const CHOICEMIN = 0;
 const CHOICEMAX = 3;
 const MENU_WIDTH = 110;
@@ -33,10 +34,11 @@ let StartedMatch = false;
 let turn;
 let ChoiceSelected = false;
 let ChoosingAtk = false;
+let Desc;
 let Battling = false;
 let FirstAtk = true;
 let PlayerAttacking;
-let AtkPhase = false; //Unused
+let DrawingAtk = false;
 let AtkDrawComplete;
 let Won = false;
 let Lost = false;
@@ -46,12 +48,12 @@ let EndOfMatch = false;
 
 /*
  *      TODO: 
- *      - ISSUES ONCE DEFEATING AN ENEMY!
- *      - ONCE ENTERING THE MATCH AGAIN, IT DOES NOT START PROPERLY
- *      - CHECK BOOLEAN VARIABLES FOR ATTACK PHASE.
+ *      - ORDER OF ATTACKS IS NOT WORKING.
+ *      - ORDER IS NOT FIXED EVEN AFTER STARTING ANOTHER MATCH.
+ *      - FOR PLAYER FIRST: 
+ *          - PLAYER GOES FIRST BUT ENEMY DOES NOTHING.
+ *          - AFTER THE FIRST, FREE ATTACK, ENEMY WILL NOW START GOING FIRST.
  */
-
-
 
 //#region /********************* MAIN GAME ******************************/
 canvas.addEventListener('keydown', event => key = event.key );
@@ -61,103 +63,100 @@ function animate(){
     context.clearRect(0,0,canvas.width,canvas.height);
     if(!InMatch && !EndOfMatch){
         DisplayMainMenu();
-        if(AcceptButtonPressed())   //Start match, set boolean values too.
+        if(AcceptButtonPressed())//Start match, set boolean values too.
             MatchInitiation();
     }
-    if(!StartedMatch){               //Create Player & Enemy before start of game           
+    if(!StartedMatch){          //Create Player & Enemy before start of game           
         CreateCharacters();
         StartedMatch = true;
     }
     if(InMatch && !Won && !Lost){
-        /********************** STANDBY PHASE ************************/
+        /************************ DRAW PHASE ************************/
         Player.draw();
         Enemy.draw();
-        TurnDraw();         //Display the turn.
+        TurnDraw();             //Display the turn.
+        /********************** STANDBY PHASE ************************/
         if(!ChoosingAtk)
-            MenuDraw();     //Draw current menu for player.
+            MenuDraw();         //Draw current menu for player.
         else
             MenuAtkDraw();
         if(!Battling){
             CursorUpdate();     //This will check the key pressed.
             CursorDraw();       //This will move according to what's pressed.
         }
-        if(!ChoosingAtk)    //If something selected, perform it, enable battle phase, unless attack or flee selected.
+        if(!ChoosingAtk)        //If something selected, perform it, enable battle phase, unless attack or flee selected.
             MenuSelect();
         else if(!Battling)
             AtkSelect();
         /*********************** BATTLE PHASE ************************/
-        if(Battling){       //True once a move is chosen.
-            /*For whoever goes first, then second, display action is description box.*/
-            PerformAtks();
-            //Draw the atk here.
-            //Display attack's damage. 
-            //Perform drawing.
-            //turn++;             //Increase turn after player & enemy's move.
-            //Battling = false;   //Once both players are done their actions, end the battle phase.
+        if(Battling){           //True once a move is chosen.      
+            ChooseEnemyAtk();
+            PerformAtks();      //For whoever goes first, then second, display action is description box.
             if(!Battling)
                 EndBattlePhase();
         }
-        /************************* END PHASE *************************/
+        /************************ END PHASE **************************/
         EndPhase();
     }
-    if(EndOfMatch){
-        key = '';
+    /************************* MATCH ENDED ***************************/
+    if(EndOfMatch){             //If match is over, display the result, cannot continue attacking/choosing.
         DisplayEndResult();
     }
-    /************************ END OF MATCH ***********************/
-    //Print this after to make it keep looping properly please!
-    //MAKE SURE TO PRINT AN END SCREEN MENU PLEASE!!
-    key = '';                   //Set the current key to blank so it can only be registered once.
+    else
+        key = '';               //Set key to blank. otherwise: cursor blasts through menu.
 }
 
-function MatchInitiation(){
+//#region Other/Uncategorized (for now) Function!
+function MatchInitiation(){             //Initialize all these variables once a match begins.
     InMatch = true;
     StartedMatch = false;
+    Battling = false;
     Won = false;
     Lost = false;
     choice = MenuOptions.Attack;
     ChoosingAtk = false;
+    choice = 0;
     turn = 1;
     key = '';
 }
 
-function TurnDraw(){
+function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
+    const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
+    const EnemyMoves = [AttackList[3], AttackList[1], AttackList[2]];
+    Player = new Rectangle(200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
+    Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+}
+
+function TurnDraw(){                    //Draws the current turn at top left corner of canvas.
     context.font = "20px Georgia";
     context.fillText(`Turn: ${turn}`,10,20);
 }
 
-function CreateCharacters(){
-    /*Initialize the moves for both player and enemies and them create them at the start.*/
-    const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
-    const EnemyMoves = [AttackList[3], AttackList[1], AttackList[2]];
-    Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
-    Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+function AcceptButtonPressed(){         //Checks if any of the following buttons pressed. 
+    //console.log(key);
+    return key == 'z' || key == 'Z';    //These are confirm buttons.
 }
 
-function AcceptButtonPressed(){
-    return key == 'z';
-}
-
-function MenuSelect(){
+function MenuSelect(){                  //Initial Menu selection.
     if(AcceptButtonPressed()){
         switch(choice){
             case MenuOptions.Attack:
-                ChoosingAtk = true;
+                ChoosingAtk = true;     //Open attack menu.
                 break;
             case MenuOptions.Defend:
-                Battling = true;
+                Battling = true;        //Go to battle phase, perform defense.
                 break;
             case MenuOptions.GiantMax:
-                Battling = true;
+                Battling = true;        //Go to battle phase, GiantMax.
                 break;
             case MenuOptions.Flee:
-                Lost = true;
+                Lost = true;            //Auto lose, launched to start menu.
                 break;
         }
     }
 }
 
-function AtkSelect(){
+function AtkSelect(){                   //Choose one of three of your attack to use, based on where accept is clicked.
     if(AcceptButtonPressed()){
         switch(choice){
             case 0:
@@ -170,8 +169,8 @@ function AtkSelect(){
                 Battling = true;
                 break;
             case 3:
-                ChoosingAtk = false;
-                choice = MenuOptions.Attack;
+                ChoosingAtk = false;   
+                choice = MenuOptions.Attack;    //Insead, go back to previous selection menu.
                 break;
         }
     }
@@ -179,19 +178,20 @@ function AtkSelect(){
 
 function EndBattlePhase(){
     turn++;
+    key = '';
 }
 
-function EndPhase(){
+function EndPhase(){            //After every iteration, check if someone was defeated.
     if(Enemy.HP <= 0)
         Won = true;
     else if(Player.HP <= 0)
         Lost = true;
     if(Won || Lost){
-        EndOfMatch = true;    //Exit match not that a winner has been decided.
+        EndOfMatch = true;      //Exit match now that a winner has been decided.
     }
 }
 
-function DisplayEndResult(){
+function DisplayEndResult(){    //End result screen, prints winner and leaves playing field as is.
     let EndResult;
     if(Won){
         EndResult = ["Congratulations!", "A winner is you!"];
@@ -204,12 +204,13 @@ function DisplayEndResult(){
     TurnDraw();
     MenuBox();
     DescriptionDraw(EndResult);
-    if(AcceptButtonPressed){
+    if(AcceptButtonPressed()){
         InMatch = false;
         EndOfMatch = false;
         key = '';
     }
 }
+//#endregion
 
 //#endregion
 /************************************************************************/
@@ -221,43 +222,41 @@ function PerformAtks(){                         //The main Atk function
     AttackAction(AtkDesc);
 }
 
+function ChooseEnemyAtk(){
+    choiceEnemy = Math.floor(Math.random() * 3);
+}
+
 function DecideAttacker(){
-    let Desc;
     if(Player.Spd > Enemy.Spd){                 //True => Player goes first.
-        if(FirstAtk){
+        if(FirstAtk && !DrawingAtk){            //Player going.
             PlayerAttacking = true;
             Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
-            //DescriptionDraw(Desc);
-            //Once Done:
-            ///FirstAtk = false;
+            console.log(Player.Moves[choice].Name + " P");
+            FirstAtk = false;
         }
-        else{
-            //PlayerAttacking = false;
-            Desc = ['Enemy used:',`${Player.Moves[choice].Name}!`];
-            //DescriptionDraw(Desc);
-            //Once Done:
+        else if (!DrawingAtk){                  //Enemy going.
+            PlayerAttacking = false;
+            Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
+            console.log(Enemy.Moves[choiceEnemy].Name + " E");
             FirstAtk = true;
         }
     }
     else{                                       //False => Enemy goes first.
-        if(FirstAtk){
-            //PlayerAttacking = false;
-            Desc = ['Enemy used:',`${Player.Moves[choice].Name}!`];
-
-            //Once Done:
+        if(FirstAtk && !DrawingAtk){            //Enemy going.
+            PlayerAttacking = false;
+            Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
+            console.log(Enemy.Moves[choiceEnemy].Name + " E");
             FirstAtk = false;
         }
-        else{
+        else if (!DrawingAtk){                  //Player going.
             PlayerAttacking = true;
             Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
-
-            //Once Done:
+            console.log(Player.Moves[choice].Name + " P");
             FirstAtk = true;
         }
     }
     return Desc
 }
-
 function AttackAction(Desc){                        //Here, it will display the attack description and animation.
     if(PlayerAttacking){
         //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
@@ -270,7 +269,6 @@ function AttackAction(Desc){                        //Here, it will display the 
                 
                 THEN
 
-
                 NEXT: CALCULATE AND DECREASE HP!!!!!!
         */
        AnimateDamage();
@@ -278,29 +276,45 @@ function AttackAction(Desc){                        //Here, it will display the 
     else{
         //Enemy.Moves[choice].draw();               //TODO: COMPLETE THIS AFTER PLAYER & ENENMY ATTACK.
         DescriptionDraw(Desc);
+        AnimateDamage();
     }
 }
 
 function AnimateDamage(){
+    let Damage
     if(PlayerAttacking){
-        let Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);
-        if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){
+        Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);        
+        if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){ //Display HP rolling down till reaches end or 0.
+            DrawingAtk = true;
             Enemy.DisplayDamage(Damage);
         }
-        else{
-            Enemy.ReceiveDamage(Damage);
-            PlayerAttacking = false;
+        else{                               //Once HP reached by rolling or 0.
+            Enemy.ReceiveDamage(Damage);    //Set their actual HP to what it is after damage calculation.
+            PlayerAttacking = false;        //Player done attack, now no longer attacking.
+            ChoosingAtk = false;            //Set menu back to normal one.
+            choice = 0;                     //Set their choice to start.
+            DrawingAtk = false;             //No longer drawing attack/rolling down HP.
             //TEMP STUFF:
             //THIS SHOULD BE PERFORMED AFTER THE LAST SHAPE HAS ATTACKED PLEASE!
             Battling = false;
         }
     }
     else{
+        Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choice].AtkValue);
+        if(Player.DisplayHP > Player.HP - Damage && Player.DisplayHP > 0){
+            DrawingAtk = true;
+            Player.DisplayDamage(Damage);
+        }
+        else{
+            Player.ReceiveDamage(Damage);
+            PlayerAttacking = true;
+            DrawingAtk = false;
+        }
     }
 }
 
-function CalculateDamage(PlayerAtk, MoveAtk){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
-    return PlayerAtk + MoveAtk;
+function CalculateDamage(CharacterAtk, MoveAtk){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
+    return CharacterAtk + MoveAtk;
 }
 
 //#endregion
@@ -345,7 +359,7 @@ function CursorDraw(){
 //#endregion
 /**************************************************************************************/
 
-//#region /**************************** MENU DRAW FUNCTIONS ****************************/
+//#region /**************************** MENU DRAW FUNCTIONS ***************************/
 function MenuDraw(){
     MenuBox();
     PrintMenuOption(MenuOptionsArray);
@@ -356,7 +370,7 @@ function MenuAtkDraw(){
     context.strokeRect(MENU_X,MENU_Y,MENU_WIDTH,MENU_HEIGHT);
     let Moveslist = Player.Moves.map(move => move.Name);            //Make new array containing names of player's moves.
     PrintMenuOption(Moveslist);                                     //Print the moves from the new array.
-    context.fillText("Go Back",MENU_X+15,MENU_Y + 20 + (3 * 15));   //Print a fourth option to go back.
+    context.fillText("Go Back",MENU_X+15,MENU_Y+20+(3*15));         //Print a fourth option to go back.
     if(!Battling)                                                   //Do not print while in battle phase.
         DescriptionDraw(CurrentDescription);                        //Attacks will have a description too!
 }
@@ -366,7 +380,7 @@ function MenuBox(){
 function PrintMenuOption(Options){
     context.font = "12px Georgia";
     for(let i = 0; i < Options.length; i++){
-        context.fillText(Options[i],MENU_X+15,MENU_Y + (i * 15) + 20);  //Display options and space them out.
+        context.fillText(Options[i],MENU_X+15,MENU_Y+(i*15)+20);    //Display options and space them out.
     }
 }
 function DescriptionDraw(Description){                              //Takes string array & displays it in description box.
@@ -379,7 +393,11 @@ function DescriptionDraw(Description){                              //Takes stri
 function DescriptionBox(){
     context.strokeRect(DESC_X,DESC_Y,MENU_WIDTH-1,MENU_HEIGHT);
 }
-function DisplayMainMenu(){                                         //Print the whole start menu here.
+function DisplayMainMenu(){                                         //Print the whole start menu here.                                    //Print the whole start menu here.
+    context.font = "20px Georgia";
+    context.fillStyle = "Red";
+    context.fillText("PLEASE ADD TO MENU LATER!",30,30);
+    context.fillStyle = "Black";
     context.font = "20px Georgia";
     context.fillText("Welcome to ShapeDown!", canvas.width / 8, canvas.height / 2 - 30);
     context.font = "15px Georgia";

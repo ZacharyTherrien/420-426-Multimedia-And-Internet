@@ -13,17 +13,18 @@ class Shape{
         this.Moves = Moves.slice(0,3);
     }
 
-    DisplayDamage(Atk){
+    DisplayDamage(Atk){                 //HP rolls down, decrease actual HP value later. Stronger attacks make it faster!
         let multiplier = 100;           //Used to slow down the speed of which HP decreases!
         this.DisplayHP -= Atk / multiplier;
         if(this.DisplayHP < 0){
             this.DisplayHP = 0;
-            this.HP = 0;
         }
     }
 
-    ReceiveDamage(Atk){
+    ReceiveDamage(Atk){                 //Calculate actual HP value after it rolls down.
         this.HP -= Atk;
+        if(this.HP < 0 )
+            this.HP = 0;
     }
 }
 
@@ -41,7 +42,7 @@ class Rectangle extends Shape{
         this.displaysStats();
     }
 
-    displaysStats(){
+    displaysStats(){                    
         context.font = "10px Georgia";
         context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
     }
