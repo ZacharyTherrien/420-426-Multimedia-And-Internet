@@ -46,4 +46,12 @@ class Rectangle extends Shape{
         context.font = "10px Georgia";
         context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
     }
+
+    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
+    }
+
+    QuickEndAtk(AtkNum){
+        this.Moves[AtkNum].AtkStarted = false;
+    }
 }

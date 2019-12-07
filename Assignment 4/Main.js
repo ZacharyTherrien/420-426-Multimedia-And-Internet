@@ -47,17 +47,13 @@ let EndOfMatch = false;
 let BattlePhaseStarted = false;
 let PlayerGoesFrst = true;
 let AttackOrderDecided = false;
-let NumAttacksThisTurn = 0;
+let AtkAnimated = false;        //Indicates if Atk's drawing has been completed.
+let NumAttacksThisTurn = 0;     //Max is 2, indicates if both attacks have been done or not.
 //#endregion
 /************************************************************************/
 
 /*
  *      TODO: 
- *      - ORDER OF ATTACKS IS NOT WORKING.
- *      - ORDER IS NOT FIXED EVEN AFTER STARTING ANOTHER MATCH.
- *      - FOR PLAYER FIRST: 
- *          - PLAYER GOES FIRST BUT ENEMY DOES NOTHING.
- *          - AFTER THE FIRST, FREE ATTACK, ENEMY WILL NOW START GOING FIRST.
  */
 
 //#region /********************* MAIN GAME ******************************/
@@ -95,9 +91,10 @@ function animate(){
             AtkSelect();
         /*********************** BATTLE PHASE ************************/
         if(Battling){           //True once a move is chosen.  
-            if(!BattlePhaseStarted)
+            if(!BattlePhaseStarted){
                 InitiateBattle();
-            ChooseEnemyAtk();
+                ChooseEnemyAtk();
+            }     
             PerformAtks();      //For whoever goes first, then second, display action is description box.
             if(!Battling)
                 EndBattlePhase();
@@ -130,7 +127,7 @@ function MatchInitiation(){             //Initialize all these variables once a 
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
     const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
-    const EnemyMoves = [AttackList[3], AttackList[1], AttackList[2]];
+    const EnemyMoves = [AttackList[1], AttackList[1], AttackList[1]];
     Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
     Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
@@ -143,6 +140,11 @@ function TurnDraw(){                    //Draws the current turn at top left cor
 function AcceptButtonPressed(){         //Checks if any of the following buttons pressed. 
     //console.log(key);
     return key == 'z' || key == 'Z';    //These are confirm buttons.
+}
+
+function SkipButtonPeressed(){
+    //console.log(key);
+    return key == 'x' || key == 'X';
 }
 
 function MenuSelect(){                  //Initial Menu selection.
@@ -279,28 +281,49 @@ function AttackerDecided(){
             FirstAtk = true;
         }
     }
+    DrawingAtk = true;
     return Desc
 }
 
-function AttackAction(Desc){                        //Here, it will display the attack description and animation.
+function AttackAction(Desc){        //Here, it will display the attack description and animation.
     if(PlayerAttacking){
+        DescriptionDraw(Desc);
         //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
         //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.   
-        DescriptionDraw(Desc);
         /* 
                 FIRST: DISPLAY THE ANIMATION!!!!!
 
                 AND
                 
+                WORK WITH THE FOLLOWING VARIABLE: AtkAnimated
+
                 THEN
 
                 NEXT: CALCULATE AND DECREASE HP!!!!!!
         */
-        AnimateDamage();
+        if(!AtkAnimated){       //Begin animating the attack.
+            AtkAnimated = Player.DrawAtk(choice, ENEMY_X, ENEMY_Y, ENEMY_X+Enemy.Width, ENEMY_Y+Enemy.Height, 1);
+            SkipAtkAnimation(Player);
+        }
+        else                    //Display & calculate damage only after animation. 
+            AnimateDamage();
     }
     else{
         DescriptionDraw(Desc);
-        AnimateDamage();
+        if(!AtkAnimated){
+            AtkAnimated = Enemy.DrawAtk(choice, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
+            SkipAtkAnimation(Enemy);
+        }
+        else
+            AnimateDamage();
+    }
+}
+
+function SkipAtkAnimation(Character){   //If x or X are pressed during an attack animation, skip it.
+    if(SkipButtonPeressed()){
+        Character.QuickEndAtk(choice);
+        AtkAnimated = true;
+        key == '';
     }
 }
 
@@ -309,38 +332,30 @@ function AnimateDamage(){
     if(PlayerAttacking){
         Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);        
         if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){ //Display HP rolling down till reaches end or 0.
-            DrawingAtk = true;
             Enemy.DisplayDamage(Damage);
         }
         else{                               //Once HP reached by rolling or 0.
             Enemy.ReceiveDamage(Damage);    //Set their actual HP to what it is after damage calculation.
             PlayerAttacking = false;        //Player done attack, now no longer attacking.
-            //ChoosingAtk = false;            //Set menu back to normal one.
             choice = 0;                     //Set their choice to start.
             DrawingAtk = false;             //No longer drawing attack/rolling down HP.
-            //TEMP STUFF:
-            //THIS SHOULD BE PERFORMED AFTER THE LAST SHAPE HAS ATTACKED PLEASE!
-            //Battling = false;
+            AtkAnimated = false;
             NumAttacksThisTurn++;
         }
     }
     else{
         Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choice].AtkValue);
         if(Player.DisplayHP > Player.HP - Damage && Player.DisplayHP > 0){
-            DrawingAtk = true;
             Player.DisplayDamage(Damage);
         }
         else{
             Player.ReceiveDamage(Damage);
             PlayerAttacking = true;
             DrawingAtk = false;
+            AtkAnimated = false;
             NumAttacksThisTurn++;
         }
     }
-}
-
-function FirstHasGone(){
-
 }
 
 function BattlingComplete(){
