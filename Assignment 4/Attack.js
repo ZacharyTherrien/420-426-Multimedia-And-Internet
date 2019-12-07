@@ -8,6 +8,11 @@ class Attack{
     SetColour(Colour){
         this.Colour = Colour;
     }
+
+    draw(){
+        CalculateSpot();
+        animate();
+    }
 }
 
 class WeaponAttack extends Attack{

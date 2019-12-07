@@ -1,12 +1,12 @@
 const AttackList = [
-    new WeaponAttack('Excalibur!', 100,
+    new WeaponAttack('Excalibur!', 200,
     [AtkStat(100), "A shining beam, hope.", "Its name is:" ,"Ex-CALIBUUUR!!"]),
     new WeaponAttack('Sword Poke', 25,
     [AtkStat(25) ,"Some simple attack.", "One simply pokes."]),
     new BallAttack('Bubble', 10,
     [AtkStat(10) ,"A bubble.", "Surprisingly effective."]),
-    new BallAttack('Magical Bubbles', 50,
-    [AtkStat(5) ,"More bubbles.", "But now magical!"])
+    new BallAttack('Magic Missile', 21,
+    [AtkStat(21) ,"A classic missile.", "But now magical!"])
 ]
 
 function AtkStat(AtkValue){
