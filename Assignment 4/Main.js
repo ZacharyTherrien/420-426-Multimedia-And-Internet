@@ -54,9 +54,19 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
 
 /*
  *      TODO: 
- *      - MAKE DEFENDING SECOND WORK!
- *      - After defending, keep initial menu?
  *      - Add FillPower option from the main menu.
+ * 
+ *      TODO AFTER:
+ *      - ADD SOUND
+ *      - FIX ANIMATIONS
+ *      - CREATE BETTER ANIMATIONS
+ *      - IMPLEMENT TYPE ADVANTAGE
+ *      - ADJUST RECEIVING DAMAGE WITH DEFENCE
+ *      - IMPLEMENT CRITICAL HITS
+ *      - ADD MORE EXPLANATIONS TO MAIN MENU
+ * 
+ *      TODO EXTRA (POST BASE GAME):
+ *      - COLOUR MAIN MENU OPTIONS
  */
 
 //#region /********************* MAIN GAME ******************************/
@@ -98,18 +108,7 @@ function animate(){
                 InitiateBattle();
                 ChooseEnemyAtk();
             }     
-            if(ChoosingAtk)
-                PerformAtks();      //For whoever goes first, then second, display action is description box.
-            else{
-                switch (choice){
-                    case MenuOptions.Defend:
-                        performDefend();
-                        break;
-                    case MenuOptions.FillPower:
-                        performFilledPower();
-                        break;
-                }
-            }
+            PerformMoves();
             if(!Battling)
                 EndBattlePhase();
         }
@@ -144,7 +143,7 @@ function MatchInitiation(){             //Initialize all these variables once a 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
     const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
     const EnemyMoves = [AttackList[1], AttackList[2], AttackList[3]];
-    Player = new Rectangle(200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
+    Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
     Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
 
@@ -201,14 +200,6 @@ function AtkSelect(){                   //Choose one of three of your attack to 
         }
     }
 }
-
-function InitiateBattle(){
-    BattlePhaseStarted = true;
-    NumMovesThisTurn = 0;
-    FirstAtk = true;
-    DecideAttacker();
-}
-
 function EndBattlePhase(){
     turn++;
     BattlePhaseStarted = false;
@@ -247,57 +238,12 @@ function DisplayEndResult(){    //End result screen, prints winner and leaves pl
 //#endregion
 /************************************************************************/
 
-//#region /**************************** OTHER MENU FUNCTIONS **************************/
-function performDefend(){
-    let DefDesc = AttackerDecided();
-    DefendAction(DefDesc);
-    BattlingComplete();
-}
-
-function DefendAction(Desc){
-    if(PlayerAttacking){
-        DescriptionDraw(Desc);
-        if(!MoveAnimated){
-            MoveAnimated = Player.DrawDef(PLAYER_X, PLAYER_Y);
-            SkipDefendAnimtion(Player);
-        }
-        else{
-            Player.Defend();
-            PlayerAttacking = false;
-            choice = 0;
-            DrawingMove = false;
-            MoveAnimated = false;
-            NumMovesThisTurn++;
-            ChoosingAtk = true;
-            console.log(Player.Def);
-        }
-    }
-}
-
-function SkipDefendAnimtion(Character){
-    if(SkipButtonPeressed()){
-        Character.QuickEndDef();
-        MoveAnimated = true;
-        key == '';
-    }
-}
-
-function performFilledPower(){
-
-}
-//#endregion
-/**************************************************************************************/
-
-//#region /***************************** ATTACK FUNCTIONS *****************************/
-function PerformAtks(){             //The main Atk function
-    let AtkDesc;
-    AtkDesc = AttackerDecided();
-    AttackAction(AtkDesc);
-    BattlingComplete();
-}
-
-function ChooseEnemyAtk(){
-    choiceEnemy = Math.floor(Math.random() * 3);
+//#region /****************************** BATTLE FUNCTIONS ****************************/
+function InitiateBattle(){
+    BattlePhaseStarted = true;
+    NumMovesThisTurn = 0;
+    FirstAtk = true;
+    DecideAttacker();
 }
 
 function DecideAttacker(){
@@ -305,6 +251,16 @@ function DecideAttacker(){
         PlayerGoesFrst = true;
     else                        //False => Enemy goes first.
         PlayerGoesFrst = false;
+}
+
+function ChooseEnemyAtk(){
+    choiceEnemy = Math.floor(Math.random() * 3);
+}
+
+function PerformMoves(){
+    let moveDesc = AttackerDecided();
+    MoveActions(moveDesc);
+    BattlingComplete();
 }
 
 function AttackerDecided(){
@@ -316,7 +272,7 @@ function AttackerDecided(){
                 console.log(Player.Moves[choice].Name + " P");
             }
             else{
-                Desc = ['Player has:',`${MenuOptionsArray[choice]}!`]
+                Desc = ['Player used:',`${MenuOptionsArray[choice]}!`]
                 console.log(Player.Def);
             }
             FirstAtk = false;
@@ -331,19 +287,19 @@ function AttackerDecided(){
     else{                                           //False => Enemy goes first.
         if(FirstAtk && !DrawingMove){                //Enemy going.
             PlayerAttacking = false;
-            if(ChoosingAtk){
-                Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
-                console.log(Enemy.Moves[choiceEnemy].Name + " E");
-            }
-            else{
-                Desc = ['Player had:',`${MenuOptionsArray[choice]}!`]
-            }
+            Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
+            console.log(Enemy.Moves[choiceEnemy].Name + " E");
             FirstAtk = false;
         }
         else if (!DrawingMove){                      //Player going.
             PlayerAttacking = true;
-            Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
-            console.log(Player.Moves[choice].Name + " P");
+            if(ChoosingAtk){
+                Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
+                console.log(Player.Moves[choice].Name + " P");
+            }
+            else{
+                Desc = ['Player used:',`${MenuOptionsArray[choice]}!`]
+            }
             FirstAtk = true;
         }
     }
@@ -351,9 +307,81 @@ function AttackerDecided(){
     return Desc
 }
 
-function AttackAction(Desc){        //Here, it will display the attack description and animation.
+function MoveActions(Desc){
+    DescriptionDraw(Desc);
     if(PlayerAttacking){
-        DescriptionDraw(Desc);
+        if(ChoosingAtk){
+            AttackAction();
+        }
+        else if(!ChoosingAtk){
+            switch (choice){
+                case MenuOptions.Defend:
+                    DefendAction();
+                    break;
+                case MenuOptions.FillPower:
+                    performFilledPower();
+                    break;
+            }
+        }
+    }
+    else if(!PlayerAttacking){
+        AttackAction();
+    }
+}
+
+function BattlingComplete(){
+    if(NumMovesThisTurn >= 2){
+        Battling = false;
+        BattlePhaseStarted = false;
+        ChoosingAtk = false;            //Set menu back to normal one.
+    }
+}
+//#endregion
+/**************************************************************************************/
+
+//#region /***************************** DEFEND FUNCTIONS ****************************/
+function DefendAction(){
+    if(PlayerAttacking){
+        if(!MoveAnimated){
+            MoveAnimated = Player.DrawDef(PLAYER_X, PLAYER_Y);
+            SkipDefendAnimtion(Player);
+        }
+        else{
+            Player.Defend();
+            PlayerAttacking = false;
+            choice = 0;
+            DrawingMove = false;
+            MoveAnimated = false;
+            NumMovesThisTurn++;
+            if(PlayerAttacking)
+                ChoosingAtk = true;
+            console.log(Player.Def);
+        }
+    }
+}
+
+function SkipDefendAnimtion(Character){
+    if(SkipButtonPeressed()){
+        Character.QuickEndDef();
+        MoveAnimated = true;
+        key == '';
+    }
+}
+
+//#endregion
+/**************************************************************************************/
+
+//#region /**************************** FILL POWER FUNCTIONS **************************/
+function FillPowerAction(){
+
+}
+
+//#endregion
+/**************************************************************************************/
+
+//#region /***************************** ATTACK FUNCTIONS *****************************/
+function AttackAction(){            //Here, it will display the attack description and animation.
+    if(PlayerAttacking){
         if(!MoveAnimated){           //Begin animating the attack.
             MoveAnimated = Player.DrawAtk(choice, ENEMY_X, ENEMY_Y, ENEMY_X+Enemy.Width, ENEMY_Y+Enemy.Height, 1);
             SkipAtkAnimation(Player);
@@ -362,9 +390,8 @@ function AttackAction(Desc){        //Here, it will display the attack descripti
             AnimateDamage();
     }
     else{
-        DescriptionDraw(Desc);
         if(!MoveAnimated){
-            MoveAnimated = Enemy.DrawAtk(choice, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
+            MoveAnimated = Enemy.DrawAtk(choiceEnemy, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
             SkipAtkAnimation(Enemy);
         }
         else
@@ -397,7 +424,7 @@ function AnimateDamage(){
         }
     }
     else{
-        Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choice].AtkValue);
+        Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choiceEnemy].AtkValue);
         if(Player.DisplayHP > Player.HP - Damage && Player.DisplayHP > 0){
             Player.DisplayDamage(Damage);
         }
@@ -413,14 +440,6 @@ function AnimateDamage(){
 
 function CalculateDamage(CharacterAtk, MoveAtk){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
     return CharacterAtk + MoveAtk;
-}
-
-function BattlingComplete(){
-    if(NumMovesThisTurn >= 2){
-        Battling = false;
-        BattlePhaseStarted = false;
-        ChoosingAtk = false;            //Set menu back to normal one.
-    }
 }
 //#endregion
 /**************************************************************************************/
