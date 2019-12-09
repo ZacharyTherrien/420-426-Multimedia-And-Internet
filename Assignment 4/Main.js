@@ -306,6 +306,13 @@ function AttackerDecided(){
     DrawingMove = true;
     return Desc
 }
+function AttackAction(Desc){                        //Here, it will display the attack description and animation.
+    if(PlayerAttacking){
+        //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
+        //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.   
+        DescriptionDraw(Desc);
+        /* 
+                FIRST: DISPLAY THE ANIMATION!!!!!
 
 function MoveActions(Desc){
     DescriptionDraw(Desc);
@@ -367,6 +374,16 @@ function SkipDefendAnimtion(Character){
         key == '';
     }
 }
+function CursorDraw(){
+    context.beginPath();
+    context.moveTo(MENU_X+5,MENU_Y + (choice * 15) + 10);
+    context.lineTo(MENU_X+10,MENU_Y +(choice * 15) + 15);
+    context.lineTo(MENU_X+5,MENU_Y + (choice * 15) + 20);
+    context.closePath();
+    context.fill();
+}
+//#endregion
+/**************************************************************************************/
 
 //#endregion
 /**************************************************************************************/
