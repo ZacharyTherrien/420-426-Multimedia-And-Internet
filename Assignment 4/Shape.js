@@ -9,7 +9,9 @@ class Shape{
         this.NewSpd = this.Spd;         //Represents new value of speed if changed, added at end of turn.
         this.Sides = Sides;
         this.Colour = Colour;
-        this.Maxed = false;
+        this.Defended = true;
+        this.Arc = 0;
+        this.Filled = false;
         this.Moves = Moves.slice(0,3);
     }
 
@@ -20,11 +22,33 @@ class Shape{
             this.DisplayHP = 0;
         }
     }
+    
+    displaysStats(){                    
+        context.font = "10px Georgia";
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
+    }
 
     ReceiveDamage(Atk){                 //Calculate actual HP value after it rolls down.
-        this.HP -= Atk;
+        this.HP -= Atk;                 //TODO: APPLY DEFENSE PLEASE!!
         if(this.HP < 0 )
             this.HP = 0;
+    }
+
+    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
+    }
+
+    QuickEndAtk(AtkNum){
+        this.Moves[AtkNum].AtkStarted = false;
+    }
+
+    Defend(){
+        this.Def = this.Def + 1;
+        this.Defended = true;
+    }
+
+    QuickEndDef(){
+        this.Arc = 2 * Math.PI;
     }
 }
 
@@ -47,11 +71,24 @@ class Rectangle extends Shape{
         context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
     }
 
-    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
-        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
-    }
-
-    QuickEndAtk(AtkNum){
-        this.Moves[AtkNum].AtkStarted = false;
+    DrawDef(x,y){
+        if(this.Defended){
+            this.Defended = false;
+            this.Arc = 0;
+        }
+        context.beginPath();
+        context.strokeStyle = "#66ff99";
+        context.arc(x+(this.Width/2),y+(this.Height/2),this.Width,0,this.Arc*Math.PI);
+        context.closePath();
+        context.stroke();
+        context.strokeStyle = "#000000";
+        if(this.Arc <  2 * Math.PI){
+            this.Arc += 0.02617993875;    //This is 1/240 of 2*Pi so it completes in 2 seconds.
+        }
+        else{
+            this.Arc = 0;
+            return true;
+        }
+        return false;
     }
 }

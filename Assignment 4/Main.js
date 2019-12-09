@@ -21,11 +21,11 @@ const MENU_X = canvas.width - MENU_WIDTH - 1;
 const MENU_Y = canvas.height - MENU_HEIGHT - 1;
 const DESC_X = MENU_X - MENU_WIDTH;
 const DESC_Y = MENU_Y;
-const MenuOptions = {"Attack":0,"Defend":1,"GiantMax":2,"Flee":3};
-const MenuOptionsArray = ["Attack", "Defend", "GiantMax", "Flee"];
+const MenuOptions = {"Attack":0,"Defend":1,"FillPower":2,"Flee":3};
+const MenuOptionsArray = ["Attack", "Defend", "FillPower", "Flee"];
 const MenuDescriptions = [Attack = ["Select an Attack."], 
 Defend = ["Defend.", "This will increase", "your defense stat."],
-GiantMax = ["Ability unavailable.","Win once to unlock."],
+FillPower = ["Ability unavailable.","Win once to unlock."],
 Flee = ["Exit the battle.","Automatic loss."]];
 const GoBackDescription = ["Return to","main menu."];
 let CurrentDescription = "";
@@ -38,7 +38,7 @@ let Desc;
 let Battling = false;
 let FirstAtk = true;
 let PlayerAttacking;
-let DrawingAtk = false;
+let DrawingMove = false;
 let AtkDrawComplete;
 let Won = false;
 let Lost = false;
@@ -47,13 +47,16 @@ let EndOfMatch = false;
 let BattlePhaseStarted = false;
 let PlayerGoesFrst = true;
 let AttackOrderDecided = false;
-let AtkAnimated = false;        //Indicates if Atk's drawing has been completed.
-let NumAttacksThisTurn = 0;     //Max is 2, indicates if both attacks have been done or not.
+let MoveAnimated = false;           //Indicates if move's drawing has been completed.
+let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have been done or not.
 //#endregion
 /************************************************************************/
 
 /*
  *      TODO: 
+ *      - MAKE DEFENDING SECOND WORK!
+ *      - After defending, keep initial menu?
+ *      - Add FillPower option from the main menu.
  */
 
 //#region /********************* MAIN GAME ******************************/
@@ -95,7 +98,18 @@ function animate(){
                 InitiateBattle();
                 ChooseEnemyAtk();
             }     
-            PerformAtks();      //For whoever goes first, then second, display action is description box.
+            if(ChoosingAtk)
+                PerformAtks();      //For whoever goes first, then second, display action is description box.
+            else{
+                switch (choice){
+                    case MenuOptions.Defend:
+                        performDefend();
+                        break;
+                    case MenuOptions.FillPower:
+                        performFilledPower();
+                        break;
+                }
+            }
             if(!Battling)
                 EndBattlePhase();
         }
@@ -109,6 +123,8 @@ function animate(){
     else
         key = '';               //Set key to blank. otherwise: cursor blasts through menu.
 }
+//#endregion
+/************************************************************************/
 
 //#region Other/Uncategorized (for now) Function!
 function MatchInitiation(){             //Initialize all these variables once a match begins.
@@ -127,8 +143,8 @@ function MatchInitiation(){             //Initialize all these variables once a 
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
     const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
-    const EnemyMoves = [AttackList[1], AttackList[1], AttackList[1]];
-    Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
+    const EnemyMoves = [AttackList[1], AttackList[2], AttackList[3]];
+    Player = new Rectangle(200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
     Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
 
@@ -156,8 +172,8 @@ function MenuSelect(){                  //Initial Menu selection.
             case MenuOptions.Defend:
                 Battling = true;        //Go to battle phase, perform defense.
                 break;
-            case MenuOptions.GiantMax:
-                Battling = true;        //Go to battle phase, GiantMax.
+            case MenuOptions.FillPower:
+                Battling = true;        //Go to battle phase, FillPower.
                 break;
             case MenuOptions.Flee:
                 Lost = true;            //Auto lose, launched to start menu.
@@ -188,7 +204,7 @@ function AtkSelect(){                   //Choose one of three of your attack to 
 
 function InitiateBattle(){
     BattlePhaseStarted = true;
-    NumAttacksThisTurn = 0;
+    NumMovesThisTurn = 0;
     FirstAtk = true;
     DecideAttacker();
 }
@@ -229,9 +245,48 @@ function DisplayEndResult(){    //End result screen, prints winner and leaves pl
     }
 }
 //#endregion
-
-//#endregion
 /************************************************************************/
+
+//#region /**************************** OTHER MENU FUNCTIONS **************************/
+function performDefend(){
+    let DefDesc = AttackerDecided();
+    DefendAction(DefDesc);
+    BattlingComplete();
+}
+
+function DefendAction(Desc){
+    if(PlayerAttacking){
+        DescriptionDraw(Desc);
+        if(!MoveAnimated){
+            MoveAnimated = Player.DrawDef(PLAYER_X, PLAYER_Y);
+            SkipDefendAnimtion(Player);
+        }
+        else{
+            Player.Defend();
+            PlayerAttacking = false;
+            choice = 0;
+            DrawingMove = false;
+            MoveAnimated = false;
+            NumMovesThisTurn++;
+            ChoosingAtk = true;
+            console.log(Player.Def);
+        }
+    }
+}
+
+function SkipDefendAnimtion(Character){
+    if(SkipButtonPeressed()){
+        Character.QuickEndDef();
+        MoveAnimated = true;
+        key == '';
+    }
+}
+
+function performFilledPower(){
+
+}
+//#endregion
+/**************************************************************************************/
 
 //#region /***************************** ATTACK FUNCTIONS *****************************/
 function PerformAtks(){             //The main Atk function
@@ -254,13 +309,19 @@ function DecideAttacker(){
 
 function AttackerDecided(){
     if(PlayerGoesFrst){                
-        if(FirstAtk && !DrawingAtk){            //Player going.
+        if(FirstAtk && !DrawingMove){            //Player going.
             PlayerAttacking = true;
-            Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
-            console.log(Player.Moves[choice].Name + " P");
+            if(ChoosingAtk){
+                Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
+                console.log(Player.Moves[choice].Name + " P");
+            }
+            else{
+                Desc = ['Player has:',`${MenuOptionsArray[choice]}!`]
+                console.log(Player.Def);
+            }
             FirstAtk = false;
         }
-        else if (!DrawingAtk){                      //Enemy going.
+        else if (!DrawingMove){                      //Enemy going.
             PlayerAttacking = false;
             Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
             console.log(Enemy.Moves[choiceEnemy].Name + " E");
@@ -268,50 +329,42 @@ function AttackerDecided(){
         }
     }
     else{                                           //False => Enemy goes first.
-        if(FirstAtk && !DrawingAtk){                //Enemy going.
+        if(FirstAtk && !DrawingMove){                //Enemy going.
             PlayerAttacking = false;
-            Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
-            console.log(Enemy.Moves[choiceEnemy].Name + " E");
+            if(ChoosingAtk){
+                Desc = ['Enemy used:',`${Enemy.Moves[choiceEnemy].Name}!`];
+                console.log(Enemy.Moves[choiceEnemy].Name + " E");
+            }
+            else{
+                Desc = ['Player had:',`${MenuOptionsArray[choice]}!`]
+            }
             FirstAtk = false;
         }
-        else if (!DrawingAtk){                      //Player going.
+        else if (!DrawingMove){                      //Player going.
             PlayerAttacking = true;
             Desc = ['Player used:',`${Player.Moves[choice].Name}!`];
             console.log(Player.Moves[choice].Name + " P");
             FirstAtk = true;
         }
     }
-    DrawingAtk = true;
+    DrawingMove = true;
     return Desc
 }
 
 function AttackAction(Desc){        //Here, it will display the attack description and animation.
     if(PlayerAttacking){
         DescriptionDraw(Desc);
-        //RETURNS TRUE IS THE DRAWING HITS THE ENEMY. AFTERWARDS, MOVE ONTO NEXT PERSON TO ATTACK OR END PHASE!!!
-        //AtkDrawComplete = Player.Moves[choice].draw();    //TODO: COMPLETE THIS AFTER PLAYER & ENEMY ATTACK.   
-        /* 
-                FIRST: DISPLAY THE ANIMATION!!!!!
-
-                AND
-                
-                WORK WITH THE FOLLOWING VARIABLE: AtkAnimated
-
-                THEN
-
-                NEXT: CALCULATE AND DECREASE HP!!!!!!
-        */
-        if(!AtkAnimated){       //Begin animating the attack.
-            AtkAnimated = Player.DrawAtk(choice, ENEMY_X, ENEMY_Y, ENEMY_X+Enemy.Width, ENEMY_Y+Enemy.Height, 1);
+        if(!MoveAnimated){           //Begin animating the attack.
+            MoveAnimated = Player.DrawAtk(choice, ENEMY_X, ENEMY_Y, ENEMY_X+Enemy.Width, ENEMY_Y+Enemy.Height, 1);
             SkipAtkAnimation(Player);
         }
-        else                    //Display & calculate damage only after animation. 
+        else                        //Display & calculate damage only after animation. 
             AnimateDamage();
     }
     else{
         DescriptionDraw(Desc);
-        if(!AtkAnimated){
-            AtkAnimated = Enemy.DrawAtk(choice, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
+        if(!MoveAnimated){
+            MoveAnimated = Enemy.DrawAtk(choice, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
             SkipAtkAnimation(Enemy);
         }
         else
@@ -322,7 +375,7 @@ function AttackAction(Desc){        //Here, it will display the attack descripti
 function SkipAtkAnimation(Character){   //If x or X are pressed during an attack animation, skip it.
     if(SkipButtonPeressed()){
         Character.QuickEndAtk(choice);
-        AtkAnimated = true;
+        MoveAnimated = true;
         key == '';
     }
 }
@@ -338,9 +391,9 @@ function AnimateDamage(){
             Enemy.ReceiveDamage(Damage);    //Set their actual HP to what it is after damage calculation.
             PlayerAttacking = false;        //Player done attack, now no longer attacking.
             choice = 0;                     //Set their choice to start.
-            DrawingAtk = false;             //No longer drawing attack/rolling down HP.
-            AtkAnimated = false;
-            NumAttacksThisTurn++;
+            DrawingMove = false;             //No longer drawing attack/rolling down HP.
+            MoveAnimated = false;
+            NumMovesThisTurn++;
         }
     }
     else{
@@ -351,18 +404,10 @@ function AnimateDamage(){
         else{
             Player.ReceiveDamage(Damage);
             PlayerAttacking = true;
-            DrawingAtk = false;
-            AtkAnimated = false;
-            NumAttacksThisTurn++;
+            DrawingMove = false;
+            MoveAnimated = false;
+            NumMovesThisTurn++;
         }
-    }
-}
-
-function BattlingComplete(){
-    if(NumAttacksThisTurn >= 2){
-        Battling = false;
-        BattlePhaseStarted = false;
-        ChoosingAtk = false;            //Set menu back to normal one.
     }
 }
 
@@ -370,6 +415,13 @@ function CalculateDamage(CharacterAtk, MoveAtk){      //TODO: CALCULATE FOR SUPE
     return CharacterAtk + MoveAtk;
 }
 
+function BattlingComplete(){
+    if(NumMovesThisTurn >= 2){
+        Battling = false;
+        BattlePhaseStarted = false;
+        ChoosingAtk = false;            //Set menu back to normal one.
+    }
+}
 //#endregion
 /**************************************************************************************/
 
