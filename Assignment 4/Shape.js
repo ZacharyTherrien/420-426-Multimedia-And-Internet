@@ -11,7 +11,11 @@ class Shape{
         this.Colour = Colour;
         this.Defended = true;
         this.Arc = 0;
+        this.ArcFull = 2 * Math.PI;
         this.Filled = false;
+        this.FillTimer = 0;
+        this.fillTimerEnd = 3;
+        this.TurnsFilled = 0;
         this.Moves = Moves.slice(0,3);
     }
 
@@ -48,7 +52,23 @@ class Shape{
     }
 
     QuickEndDef(){
-        this.Arc = 2 * Math.PI;
+        this.Arc = this.ArcFull;
+        this.Defend();
+    }
+
+    UseFillPower(){
+        this.Filled = true;
+    }
+
+    FillBoost(){
+        this.Atk += this.Atk/4;
+        this.Def += this.Def/4;
+        this.Spd += 2;
+    }
+
+    QuickEndFill(){
+        this.fillTimer = this.fillTimerEnd;
+        this.FillBoost();
     }
 }
 
@@ -62,8 +82,14 @@ class Rectangle extends Shape{
     }
 
     draw(){
-        context.strokeRect(this.positionX,this.positionY,this.Width,this.Height);
-        this.displaysStats();
+        if(!this.Filled){
+            context.strokeRect(this.positionX,this.positionY,this.Width,this.Height);
+            this.displaysStats();
+        }
+        else{
+            context.fillRect(this.positionX,this.positionY,this.Width,this.Height);
+            this.displaysStats();
+        }
     }
 
     displaysStats(){                    
@@ -83,10 +109,21 @@ class Rectangle extends Shape{
         context.stroke();
         context.strokeStyle = "#000000";
         if(this.Arc <  2 * Math.PI){
-            this.Arc += 0.02617993875;    //This is 1/240 of 2*Pi so it completes in 2 seconds.
+            this.Arc += 0.0523598775;    //This is 1/240 of 2*Pi so it completes in 2 seconds. 
+            //Previous value: 0.02617993875
         }
         else{
             this.Arc = 0;
+            return true;
+        }
+        return false;
+    }
+
+    DrawFill(){
+        let aFrame = 1/60;
+        this.FillTimer += aFrame;
+        if(this.FillTimer >= this.fillTimerEnd){
+            this.FillBoost();
             return true;
         }
         return false;
