@@ -44,7 +44,7 @@ class WeaponAttack extends Attack{
     }
 
     HitTarget(endX1, endY1, endX2, endY2){      //Check if it has reached the target!
-        if(this.x >= endX1-30 && this.x <= endX2+30 && this.y >= endY1-10 && this.y <= endY2+10 
+        if(this.x >= endX1 && this.x <= endX2 && this.y >= endY1 && this.y <= endY2
             || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
                 this.AtkStarted = false;
                 return true;

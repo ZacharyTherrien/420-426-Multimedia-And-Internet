@@ -1,22 +1,38 @@
+//////////////////////////////////////////////////////////////
+//                                                          //
+//   ANY DRAW METHODS MUST GO WITHIN THE CHILD CLASSES!     //
+//                                                          //
+//////////////////////////////////////////////////////////////
+
 class Shape{
-    constructor(HP, Atk, Def, Spd, Sides, Colour, Moves){
+    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
+        this.positionX = positionX;
+        this.positionY = positionY;
         this.BaseHP = HP;
         this.HP = this.BaseHP;
         this.DisplayHP = this.BaseHP;
-        this.Atk = Atk;
-        this.Def = Def;
-        this.Spd = Spd;
-        this.NewSpd = this.Spd;         //Represents new value of speed if changed, added at end of turn.
+        this.BaseAtk = Atk;
+        this.Atk = this.BaseAtk;
+        this.BaseDef = Def;
+        this.Def = this.BaseDef;
+        this.BaseSpd = Spd;
+        this.Spd = this.BaseSpd;
         this.Sides = Sides;
         this.Colour = Colour;
         this.Defended = true;
         this.Arc = 0;
         this.ArcFull = 2 * Math.PI;
         this.Filled = false;
+        this.CanFill = true;
         this.FillTimer = 0;
         this.fillTimerEnd = 3;
         this.TurnsFilled = 0;
         this.Moves = Moves.slice(0,3);
+    }
+
+    displaysStats(adjust = 0){                    
+        context.font = "10px Georgia";
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Height + 20);
     }
 
     DisplayDamage(Atk){                 //HP rolls down, decrease actual HP value later. Stronger attacks make it faster!
@@ -26,11 +42,6 @@ class Shape{
             this.DisplayHP = 0;
         }
     }
-    
-    displaysStats(){                    
-        context.font = "10px Georgia";
-        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
-    }
 
     ReceiveDamage(Atk){                 //Calculate actual HP value after it rolls down.
         this.HP -= Atk;                 //TODO: APPLY DEFENSE PLEASE!!
@@ -38,45 +49,77 @@ class Shape{
             this.HP = 0;
     }
 
-    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
-        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
-    }
-
     QuickEndAtk(AtkNum){
         this.Moves[AtkNum].AtkStarted = false;
     }
 
     Defend(){
+        console.log(this.Def);
         this.Def = this.Def + 1;
+        console.log(this.Def);
         this.Defended = true;
     }
 
     QuickEndDef(){
         this.Arc = this.ArcFull;
-        this.Defend();
     }
 
     UseFillPower(){
         this.Filled = true;
+        this.FillBoost();
+    }
+
+    DrawFill(){
+        let aFrame = 1/60;
+        this.FillTimer += aFrame;
+        if(this.FillTimer >= this.fillTimerEnd){
+            return true;
+        }
+        return false;
     }
 
     FillBoost(){
+        console.log("BEFORE:");
+        console.log("Atk: " + this.Atk);
+        console.log("Def: " + this.Def);
+        console.log("Spd: " + this.Spd);
         this.Atk += this.Atk/4;
         this.Def += this.Def/4;
         this.Spd += 2;
+        this.CanFill = false;
+        console.log("AFTER:");
+        console.log("Atk: " + this.Atk);
+        console.log("Def: " + this.Def);
+        console.log("Spd: " + this.Spd);
+    }
+
+    FillCheckEnd(){
+        if(this.TurnsFilled >= 3){
+            this.Filled = false;
+            this.FillEnd();
+        }
+        this.TurnsFilled++;
+    }
+
+    FillEnd(){
+        this.Atk = this.BaseAtk;
+        this.Def = this.BaseDef;
+        this.Spd = this.BaseSpd;
+        this.HP += 20;
+        console.log("ENDING:");
+        console.log("Atk: " + this.Atk);
+        console.log("Def: " + this.Def);
+        console.log("Spd: " + this.Spd);
     }
 
     QuickEndFill(){
         this.fillTimer = this.fillTimerEnd;
-        this.FillBoost();
     }
 }
 
 class Rectangle extends Shape{
-    constructor(HP, Atk, Def, Spd, Sides, Colour, Moves, positionX, positionY){
-        super(HP, Atk, Def, Spd, Sides, Colour, Moves);
-        this.positionX = positionX;
-        this.positionY = positionY;
+    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
+        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
         this.Width = 50;
         this.Height = 50;
     }
@@ -84,48 +127,159 @@ class Rectangle extends Shape{
     draw(){
         if(!this.Filled){
             context.strokeRect(this.positionX,this.positionY,this.Width,this.Height);
-            this.displaysStats();
         }
         else{
             context.fillRect(this.positionX,this.positionY,this.Width,this.Height);
-            this.displaysStats();
         }
+        this.displaysStats();
     }
 
-    displaysStats(){                    
-        context.font = "10px Georgia";
-        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5, this.positionY + this.Height + 20);
+    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
     }
 
-    DrawDef(x,y){
+    DrawDef(){
         if(this.Defended){
             this.Defended = false;
             this.Arc = 0;
         }
-        context.beginPath();
-        context.strokeStyle = "#66ff99";
-        context.arc(x+(this.Width/2),y+(this.Height/2),this.Width,0,this.Arc*Math.PI);
-        context.closePath();
-        context.stroke();
-        context.strokeStyle = "#000000";
+        context.beginPath();                    //Begin path every frame, creates an ongoing creating effect.
+        context.arc(this.positionX+(this.Width/2),this.positionY+(this.Height/2),this.Width,0,this.Arc*Math.PI);
         if(this.Arc <  2 * Math.PI){
-            this.Arc += 0.0523598775;    //This is 1/240 of 2*Pi so it completes in 2 seconds. 
-            //Previous value: 0.02617993875
+            context.strokeStyle = "#66ff99";
+            context.stroke();                   
+            context.strokeStyle = "#000000";
+            this.Arc += 0.0523598775;           //This is 1/240 of 2*Pi so it completes in 2 seconds. 
+            if(this.Arc > Math.PI){             //If circle complete, fill with transparent green.
+                context.fillStyle = "#66ff99";
+                context.globalAlpha = 0.2;      //Sets transparency.
+                context.fill();
+                context.globalAlpha = 1;      
+                context.fillStyle = "#000000";
+            }
         }
-        else{
+        else{       
+            context.closePath();                //Close path after it is all complete, removes line effect.
             this.Arc = 0;
             return true;
         }
         return false;
     }
 
-    DrawFill(){
-        let aFrame = 1/60;
-        this.FillTimer += aFrame;
-        if(this.FillTimer >= this.fillTimerEnd){
-            this.FillBoost();
+    //#region Find and return hitboxes
+    HitBoxX1(){
+        return this.positionX;
+    }
+
+    HitBoxX2(){
+        return this.positionX + this.Width;
+    }
+
+    HitBoxY1(){
+        return this.positionY;
+    }
+
+    HitBoxY2(){
+        return this.positionY + this.Height;
+    }
+    //#endregion
+}
+
+class Triangle extends Shape{
+    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
+        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
+        this.Base = 50
+        this.Height = 40;
+    }
+    //#region Draw functions
+    draw(){
+        if(!this.Filled){
+            context.beginPath();
+            context.moveTo(this.positionX,this.positionY);
+            context.lineTo(this.positionX + this.Base, this.positionY + this.Height);
+            context.lineTo(this.positionX - this.Base, this.positionY + this.Height);
+            context.closePath();
+            context.stroke();
+        }
+        else{
+            context.beginPath();
+            context.moveTo(this.positionX,this.positionY);
+            context.lineTo(this.positionX + this.Base, this.positionY + this.Height);
+            context.lineTo(this.positionX - this.Base, this.positionY + this.Height);
+            context.closePath();
+            context.fill();
+        }
+        let modifyX = (this.Base/2) * -1
+        this.displaysStats(modifyX);
+    }
+
+    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+20, this.positionY+(this.Height/2), velocity);
+    }
+
+    DrawDef(){
+        if(this.Defended){
+            this.Defended = false;
+            this.Arc = 0;
+        }
+        context.beginPath();                    //Begin path every frame, creates an ongoing creating effect.
+        context.arc(this.positionX,this.positionY+(this.Height/1.5),this.Base*1.2,0,this.Arc*Math.PI);
+        if(this.Arc <  2 * Math.PI){
+            context.strokeStyle = "#66ff99";
+            context.stroke();                   
+            context.strokeStyle = "#000000";
+            this.Arc += 0.0523598775;           //This is 1/240 of 2*Pi so it completes in 2 seconds. 
+            if(this.Arc > Math.PI){             //If circle complete, fill with transparent green.
+                context.fillStyle = "#66ff99";
+                context.globalAlpha = 0.2;      //Sets transparency.
+                context.fill();
+                context.globalAlpha = 1;      
+                context.fillStyle = "#000000";
+            }
+        }
+        else{       
+            context.closePath();                //Close path after it is all complete, removes line effect.
+            this.Arc = 0;
             return true;
         }
         return false;
+    }
+    //#endregion
+
+    //#region Find & return hitboxes
+    HitBoxX1(){
+        return this.positionX - this.Base;
+    }
+
+    HitBoxX2(){
+        return this.positionX + this.Base;
+    }
+
+    HitBoxY1(){
+        return this.positionY;
+    }
+
+    HitBoxY2(){
+        return this.positionY + this.Height;
+    }
+    //#endregion
+}
+
+class Circle extends Shape(){
+    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
+        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
+        this.Radius = 50;
+    }
+
+    draw(){
+        if(!this.Filled){
+            context.beginPath();
+            context.arc(this.positionX, this.positionY, this.Radius, 0, 2*Math.PI);
+            context.closePath();
+            context.stroke();
+        }
+        else{
+
+        }
     }
 }

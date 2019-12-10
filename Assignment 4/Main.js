@@ -57,22 +57,26 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
 
 /*
  *      TODO: 
- *      - Make sure defend increases defence and fill power increases stats too.
- *      - Enable fill power only once per battle!
- *      - Disable fill power 3 turns after used.
- *      - Can switch menus while in attack animation.
+ *      - Add triangle and circle class.
+ *      - Add new attacks.
+ *        New class types:
+ *        - Line (neutral all): Star Finger, DB power pole
+ *        - Spinning Line: Hero spin, cat copter
+ *        - Light (good vs all): Excalibur, Hamon Energy,
+ *        - Square?: Magic missile, yeet block
+ *      - ADD SOUND
+ *      - IMPLEMENT TYPE ADVANTAGE
  * 
  *      - ANIMATION GLITCH DOING AFTER???? MUST FIX AFTERWARDS!!!
  *          UNRELATED TO FILL POWER.
- *          OCCURS AFTER SKIPPING ENENMY ANIMATION??
- *          PLAYER MUST FIRST USE OPTION FROM 1ST MENU AND THEN AN ATTACK.
- *          IT IS NOT BEING SKIPPED EITHER.
+ *          OCCURS FROM SKIPPING ANIMATION
+ *          IF PLAYER DOES DEFEND THEN FILL, OR VICE VERSA, TRIGGERS GLITCH!!
+ *          THI IS OCCURING DUE TO BALL INSTANCE ATTACKS.
  * 
  *      TODO AFTER:
- *      - ADD SOUND
  *      - FIX ANIMATIONS
+ *      - ADD AN ANIMATION FOR FILL POWER.
  *      - CREATE BETTER ANIMATIONS
- *      - IMPLEMENT TYPE ADVANTAGE
  *      - ADJUST RECEIVING DAMAGE WITH DEFENCE
  *      - IMPLEMENT CRITICAL HITS
  *      - ADD MORE EXPLANATIONS TO MAIN MENU
@@ -156,9 +160,9 @@ function MatchInitiation(){             //Initialize all these variables once a 
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
     const PlayerMoves = [AttackList[4], AttackList[1], AttackList[2]];
-    const EnemyMoves = [AttackList[1], AttackList[2], AttackList[3]];
-    Player = new Rectangle(200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
-    Enemy = new Rectangle(200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+    const EnemyMoves = [AttackList[2], AttackList[2], AttackList[2]];
+    Player = new Triangle(PLAYER_X, PLAYER_Y, 200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
+    Enemy = new Triangle(ENEMY_X, ENEMY_Y, 200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
 
 function TurnDraw(){                    //Draws the current turn at top left corner of canvas.
@@ -177,7 +181,7 @@ function SkipButtonPressed(){
 }
 
 function MenuSelect(){                  //Initial Menu selection.
-    if(AcceptButtonPressed()){
+    if(AcceptButtonPressed() && !Battling){
         switch(choice){
             case MenuOptions.Attack:
                 ChoosingAtk = true;     //Open attack menu.
@@ -186,12 +190,13 @@ function MenuSelect(){                  //Initial Menu selection.
                 Battling = true;        //Go to battle phase, perform defense.
                 break;
             case MenuOptions.FillPower:
-                if(enabledFillPower)
+                if(enabledFillPower && Player.CanFill)
                     Battling = true;        //Go to battle phase, FillPower.
                 else{
                     //***********************************
                     //MAKE A LOUD CONSOLE.BEEP DENY!!!
                     //***********************************
+                    console.log('Cannot fill power at the moment.');
                 }
                 break;
             case MenuOptions.Flee:
@@ -202,7 +207,7 @@ function MenuSelect(){                  //Initial Menu selection.
 }
 
 function AtkSelect(){                   //Choose one of three of your attack to use, based on where accept is clicked.
-    if(AcceptButtonPressed()){
+    if(AcceptButtonPressed() && !Battling){
         switch(choice){
             case 0:
                 Battling = true;
@@ -222,6 +227,8 @@ function AtkSelect(){                   //Choose one of three of your attack to 
 }
 function EndBattlePhase(){
     turn++;
+    if(Player.Filled)
+        Player.FillCheckEnd();
     BattlePhaseStarted = false;
     key = '';
 }
@@ -232,7 +239,7 @@ function EndPhase(){            //After every iteration, check if someone was de
         numWins++;
         MenuDescriptions[MenuOptions.FillPower] = ['Fill your shape with',
         'POWER!!',
-        '',
+        'Once per duel:',
         'This will boost your', 
         'stats for 3 turns',
         'after it\'s selected.'];
@@ -375,7 +382,7 @@ function BattlingComplete(){
 function DefendAction(){
     if(PlayerAttacking){
         if(!MoveAnimated && !MoveSkipped){
-            MoveAnimated = Player.DrawDef(PLAYER_X, PLAYER_Y);
+            MoveAnimated = Player.DrawDef();
             SkipDefendAnimtion(Player);
         }
         else{
@@ -388,7 +395,7 @@ function DefendAction(){
             NumMovesThisTurn++;
             if(PlayerAttacking)
                 ChoosingAtk = true;
-            console.log(Player.Def);
+            console.log("Defence:" + Player.Def);
         }
     }
 }
@@ -442,7 +449,7 @@ function SkipFillAnimation(Character){
 function AttackAction(){            //Here, it will display the attack description and animation.
     if(PlayerAttacking){
         if(!MoveAnimated && !MoveSkipped){           //Begin animating the attack.
-            MoveAnimated = Player.DrawAtk(choice, ENEMY_X, ENEMY_Y, ENEMY_X+Enemy.Width, ENEMY_Y+Enemy.Height, 1);
+            MoveAnimated = Player.DrawAtk(choice, Enemy.HitBoxX1(), Enemy.HitBoxY1(), Enemy.HitBoxX2(), Enemy.HitBoxY2(), 1);
             SkipAtkAnimation(Player);
         }
         else                        //Display & calculate damage only after animation. 
@@ -450,7 +457,7 @@ function AttackAction(){            //Here, it will display the attack descripti
     }
     else{
         if(!MoveAnimated && !MoveSkipped){
-            MoveAnimated = Enemy.DrawAtk(choiceEnemy, PLAYER_X, PLAYER_Y, PLAYER_X+Player.Width, PLAYER_Y+Player.Height, -1);
+            MoveAnimated = Enemy.DrawAtk(choiceEnemy, Player.HitBoxX1(), Player.HitBoxY1(), Player.HitBoxX2(), Player.HitBoxY2(), -1);
             SkipAtkAnimation(Enemy);
         }
         else
@@ -467,7 +474,7 @@ function SkipAtkAnimation(Character){   //If x or X are pressed during an attack
     }
 }
 
-function AnimateDamage(){
+function AnimateDamage(){                   //Display and animate the HP rolling down.
     let Damage
     if(PlayerAttacking){
         Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);        

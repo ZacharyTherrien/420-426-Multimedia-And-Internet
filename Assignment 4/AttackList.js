@@ -1,3 +1,6 @@
+//Max characters: ~22 chars.
+//Max lines: 6 lines.
+
 const AttackList = [
     new WeaponAttack('Excalibur!', 500,
     [AtkStat(100), "A shining beam, hope.", "Its name is:" ,"Ex-CALIBUUUR!!"]),
