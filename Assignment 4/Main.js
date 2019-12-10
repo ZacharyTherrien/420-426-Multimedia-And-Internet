@@ -162,7 +162,7 @@ function CreateCharacters(){            //Initialize moves for both player and e
     const PlayerMoves = [AttackList[4], AttackList[1], AttackList[2]];
     const EnemyMoves = [AttackList[2], AttackList[2], AttackList[2]];
     Player = new Triangle(PLAYER_X, PLAYER_Y, 200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
-    Enemy = new Triangle(ENEMY_X, ENEMY_Y, 200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+    Enemy = new Circle(ENEMY_X, ENEMY_Y, 200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
 }
 
 function TurnDraw(){                    //Draws the current turn at top left corner of canvas.

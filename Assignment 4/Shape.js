@@ -30,11 +30,6 @@ class Shape{
         this.Moves = Moves.slice(0,3);
     }
 
-    displaysStats(adjust = 0){                    
-        context.font = "10px Georgia";
-        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Height + 20);
-    }
-
     DisplayDamage(Atk){                 //HP rolls down, decrease actual HP value later. Stronger attacks make it faster!
         let multiplier = 100;           //Used to slow down the speed of which HP decreases!
         this.DisplayHP -= Atk / multiplier;
@@ -124,6 +119,7 @@ class Rectangle extends Shape{
         this.Height = 50;
     }
 
+    //#region Draw functions
     draw(){
         if(!this.Filled){
             context.strokeRect(this.positionX,this.positionY,this.Width,this.Height);
@@ -132,6 +128,11 @@ class Rectangle extends Shape{
             context.fillRect(this.positionX,this.positionY,this.Width,this.Height);
         }
         this.displaysStats();
+    }
+
+    displaysStats(adjust = 0){                    
+        context.font = "10px Georgia";
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Height + 20);
     }
 
     DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
@@ -165,6 +166,7 @@ class Rectangle extends Shape{
         }
         return false;
     }
+    //#endregion
 
     //#region Find and return hitboxes
     HitBoxX1(){
@@ -213,8 +215,13 @@ class Triangle extends Shape{
         this.displaysStats(modifyX);
     }
 
+    displaysStats(adjust = 0){                    
+        context.font = "10px Georgia";
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Height + 20);
+    }
+
     DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
-        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+20, this.positionY+(this.Height/2), velocity);
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX, this.positionY, velocity);
     }
 
     DrawDef(){
@@ -265,12 +272,15 @@ class Triangle extends Shape{
     //#endregion
 }
 
-class Circle extends Shape(){
+class Circle extends Shape{
     constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
         super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
-        this.Radius = 50;
+        this.Radius = 35;
+        this.positionX += 15;
+        this.positionY += 15;
     }
 
+    //#region 
     draw(){
         if(!this.Filled){
             context.beginPath();
@@ -279,7 +289,68 @@ class Circle extends Shape(){
             context.stroke();
         }
         else{
-
+            context.beginPath();
+            context.arc(this.positionX, this.positionY, this.Radius, 0, 2*Math.PI);
+            context.closePath();
+            context.fill();
         }
+        let modifyX = 0;
+        this.displaysStats(this.Radius/1.5 * -1);
     }
+
+    DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
+        return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX + (this.Radius/2), this.positionY - (this.Radius/2), velocity);
+    }
+
+    DrawDef(){
+        if(this.Defended){
+            this.Defended = false;
+            this.Arc = 0;
+        }
+        context.beginPath();                    //Begin path every frame, creates an ongoing creating effect.
+        context.arc(this.positionX,this.positionY,this.Radius*1.5,0,this.Arc*Math.PI);
+        if(this.Arc <  2 * Math.PI){
+            context.strokeStyle = "#66ff99";
+            context.stroke();                   
+            context.strokeStyle = "#000000";
+            this.Arc += 0.0523598775;           //This is 1/240 of 2*Pi so it completes in 2 seconds. 
+            if(this.Arc > Math.PI){             //If circle complete, fill with transparent green.
+                context.fillStyle = "#66ff99";
+                context.globalAlpha = 0.2;      //Sets transparency.
+                context.fill();
+                context.globalAlpha = 1;      
+                context.fillStyle = "#000000";
+            }
+        }
+        else{       
+            context.closePath();                //Close path after it is all complete, removes line effect.
+            this.Arc = 0;
+            return true;
+        }
+        return false;
+    }
+
+    displaysStats(adjust = 0){                    
+        context.font = "10px Georgia";                          
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Radius + 20);
+    }
+    //#endregion
+
+    //#region Find & return hitboxes
+    HitBoxX1(){
+        return this.positionX - this.Radius;
+    }
+
+    HitBoxX2(){
+        return this.positionX + this.Radius;
+    }
+
+    HitBoxY1(){
+        return this.positionY - this.Radius;
+    }
+
+    HitBoxY2(){
+        return this.positionY + this.Radius;
+    }
+    //#endregion
 }
