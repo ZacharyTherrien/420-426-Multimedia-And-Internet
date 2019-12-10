@@ -44,6 +44,11 @@ class Shape{
             this.HP = 0;
     }
 
+    HealHP(HP){
+        this.HP += HP;
+        this.DisplayHP = this.HP;
+    }
+
     QuickEndAtk(AtkNum){
         this.Moves[AtkNum].AtkStarted = false;
     }
@@ -97,10 +102,11 @@ class Shape{
     }
 
     FillEnd(){
+        let Heal = 20;
         this.Atk = this.BaseAtk;
         this.Def = this.BaseDef;
         this.Spd = this.BaseSpd;
-        this.HP += 20;
+        this.HealHP(Heal);
         console.log("ENDING:");
         console.log("Atk: " + this.Atk);
         console.log("Def: " + this.Def);

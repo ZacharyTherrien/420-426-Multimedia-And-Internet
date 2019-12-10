@@ -12,15 +12,23 @@ class Attack{
     drawAtk(targetX1, targetY1, targetX2, targetY2, startX, starty, vModifier){
         this.CalculateSpot(startX, starty, vModifier);
         this.animateAtk();
-        return this.HitTarget(targetX1, targetY1, targetX2, targetY2);
+        return this.HitTarget(vModifier, targetX1, targetY1, targetX2, targetY2);
     }
 }
+
+
+        //FOR P TO E YOU CHECK ATTACK X2 TO E X2
+        //FOR E TO P YOU CHECK ATTACK X1 TO P X1
+
+
+        //AS OF NOW, ONLY THE WEAPONATTACKS COLLISION WORKS!
 
 class WeaponAttack extends Attack{
     constructor(Name, AtkValue, Description){
         super(Name, AtkValue, Description);
         this.x;
         this.y;
+        this.length = 30;
         this.directionX = 45;
         this.directionY = 25;
         this.AtkStarted = false;
@@ -40,15 +48,24 @@ class WeaponAttack extends Attack{
     }
 
     animateAtk(){   //Draw the actual drawing only here!
-        context.strokeRect(this.x, this.y, 30, 30);
+        context.strokeRect(this.x, this.y, this.length, this.length);
     }
 
-    HitTarget(endX1, endY1, endX2, endY2){      //Check if it has reached the target!
-        if(this.x >= endX1 && this.x <= endX2 && this.y >= endY1 && this.y <= endY2
-            || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+    HitTarget(Character, endX1, endY1, endX2, endY2){               //Check if it has reached the target!
+        if(Character > 0){                                          //Check Player attack to Enemy
+            if(this.x + this.length >= endX1 && this.y >= endY1 || 
+               this.x < 0 || this.y < 0 || this.x + this.length > canvas.width || this.y + this.length> canvas.height){
+                    this.AtkStarted = false;
+                    return true;
+                }
+        }
+        else{                                                       //Check Enemy attack to Player
+            if(this.x <= endX2 && this.y + this.length <= endY2 ||
+               this.x < 0 || this.y < 0 || this.x + this.length > canvas.width || this.y + this.length> canvas.height){
                 this.AtkStarted = false;
                 return true;
             }
+        }
         return false;
     }
 }
@@ -86,12 +103,17 @@ class BallAttack extends Attack{
         context.strokeStyle = "#000000";
     }
 
-    HitTarget(endX1, endY1, endX2, endY2){      //Check if it has reached the target!
-        if(this.x >= endX1-30 && this.x <= endX2+30 && this.y >= endY1-10 && this.y <= endY2+10 
-            || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
-                this.AtkStarted = false;
-                return true;
-            }
+    HitTarget(Character, endX1, endY1, endX2, endY2){      //Check if it has reached the target!
+        if(Character > 0){
+            if(this.x >= endX1 && this.x <= endX2 && this.y >= endY1 && this.y <= endY2
+                || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+                    this.AtkStarted = false;
+                    return true;
+                }
+        }
+        else{
+
+        }
         return false;
     }
 }
