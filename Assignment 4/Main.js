@@ -45,7 +45,6 @@ let Lost = false;
 let EndOfMatch = false;
 let numWins = 0;
 let enabledFillPower = false;
-
 let MoveSkipped = false;
 let BattlePhaseStarted = false;
 let PlayerGoesFrst = true;
@@ -57,17 +56,7 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
 
 /*
  *      TODO: 
- *      - Solidify Attack collision.
- *      - Add new attacks.
- *        New class types:
- *        - Line (neutral all): Star Finger, DB power pole
- *        - Spinning Line: Hero spin, cat copter
- *        - Light (good vs all): Excalibur, Hamon Energy,
- *        - Square?: Magic missile, yeet block
- *      - ADD SOUND
- *      - IMPLEMENT TYPE ADVANTAGE
- *      - ADJUST RECEIVING DAMAGE WITH DEFENCE
- *      - ADD MORE EXPLANATIONS TO MAIN MENU
+ *      - ADD SOUND    
  * 
  *      - ANIMATION GLITCH DOING AFTER???? MUST FIX AFTERWARDS!!!
  *          UNRELATED TO FILL POWER.
@@ -83,8 +72,10 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
  *      - IF PLAYERS TRY TO FILL POWER W/O UNLOCKING IT, DENY SOUND
  * 
  *      TODO EXTRA (POST BASE GAME):
+ *      - TRY TO ADD SPIN ATTACKS.
  *      - COLOUR MAIN MENU OPTIONS
  *      - WRITE, IN COMMENTS, WHERE ARRAY METHODS ARE.
+ *      - ADD MORE COMMENTS PLEASE!
  *      - TELL USE FILL POWER HAS ENDED, DISPLAY HEALED HP TOO.
  */
 
@@ -160,10 +151,14 @@ function MatchInitiation(){             //Initialize all these variables once a 
 }
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
-    const PlayerMoves = [AttackList[4], AttackList[1], AttackList[2]];
+    const PlayerMoves = [AttackList[8], AttackList[5], AttackList[2]];
     const EnemyMoves = [AttackList[1], AttackList[1], AttackList[1]];
-    Player = new Circle(PLAYER_X, PLAYER_Y, 200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
-    Enemy = new Triangle(ENEMY_X, ENEMY_Y, 200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+    Player = new Circle(PLAYER_X, PLAYER_Y, 200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
+    Enemy = new Triangle(ENEMY_X, ENEMY_Y, 400, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+}
+
+function GenerateMovesList(){
+
 }
 
 function TurnDraw(){                    //Draws the current turn at top left corner of canvas.
@@ -478,27 +473,35 @@ function SkipAtkAnimation(Character){   //If x or X are pressed during an attack
 function AnimateDamage(){                   //Display and animate the HP rolling down.
     let Damage
     if(PlayerAttacking){
-        Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue);        
+        Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue, Enemy);        
         if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){ //Display HP rolling down till reaches end or 0.
+            Enemy.CheckEffectiveness(Player.Moves[choice].Type);
             Enemy.DisplayDamage(Damage);
         }
-        else{                               //Once HP reached by rolling or 0.
-            Enemy.ReceiveDamage(Damage);    //Set their actual HP to what it is after damage calculation.
-            PlayerAttacking = false;        //Player done attack, now no longer attacking.
-            choice = 0;                     //Set their choice to start.
-            DrawingMove = false;            //No longer drawing attack/rolling down HP.
+        else{                                                           //Once HP reached by rolling or 0.
+            let trueDamage = Player.Atk + Player.Moves[choice].AtkValue;
+            console.log(Enemy.Def);
+            Enemy.ReceiveDamage(trueDamage);                                //Set their actual HP to what it is after damage calculation.
+            console.log(Enemy.Def);
+            PlayerAttacking = false;                                    //Player done attack, now no longer attacking.
+            choice = 0;                                                 //Set their choice to start.
+            DrawingMove = false;                                        //No longer drawing attack/rolling down HP.
             MoveSkipped = false;
             MoveAnimated = false;
             NumMovesThisTurn++;
         }
     }
     else{
-        Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choiceEnemy].AtkValue);
+        Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choiceEnemy].AtkValue, Player);
         if(Player.DisplayHP > Player.HP - Damage && Player.DisplayHP > 0){
+            Player.CheckEffectiveness(Enemy.Moves[choiceEnemy].Type);
             Player.DisplayDamage(Damage);
         }
         else{
-            Player.ReceiveDamage(Damage);
+            let trueDamage = Enemy.Atk + Enemy.Moves[choiceEnemy].AtkValue;
+            console.log(Player.Def);
+            Player.ReceiveDamage(trueDamage);
+            console.log(Player.Def);
             PlayerAttacking = true;
             DrawingMove = false;
             MoveAnimated = false;
@@ -508,8 +511,12 @@ function AnimateDamage(){                   //Display and animate the HP rolling
     }
 }
 
-function CalculateDamage(CharacterAtk, MoveAtk){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
-    return CharacterAtk + MoveAtk;
+function CalculateDamage(CharacterAtk, MoveAtk, Receiver){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
+    let tempDef = Receiver.Def;
+    if(Receiver.ReceivedSprEfct){
+        tempDef = tempDef / 1.5;
+    }
+    return CharacterAtk + MoveAtk  - tempDef / 3;
 }
 //#endregion
 /**************************************************************************************/
@@ -588,18 +595,20 @@ function DescriptionBox(){
     context.strokeRect(DESC_X,DESC_Y,MENU_WIDTH-1,MENU_HEIGHT);
 }
 function DisplayMainMenu(){                                         //Print the whole start menu here.                                    //Print the whole start menu here.
-    context.font = "20px Georgia";
-    context.fillStyle = "Red";
-    context.fillText("PLEASE ADD TO MENU LATER!",30,30);
+    // context.font = "20px Georgia";
+    // context.fillStyle = "Red";
+    // context.fillText("PLEASE ADD TO MENU LATER!",30,30);
     context.fillStyle = "Black";
-    context.font = "20px Georgia";
-    context.fillText("Welcome to ShapeDown!", canvas.width / 8, canvas.height / 2 - 30);
+    context.font = "30px Georgia";
+    context.fillText("Welcome to ShapeDown!", canvas.width / 8, canvas.height / 3);
     context.font = "15px Georgia";
     context.fillText("Controls:", canvas.width / 8, canvas.height / 2);
     context.fillText("- Arrow keys to move selection.", canvas.width / 8, canvas.height / 2 + 20);
     context.fillText("- Z to select option", canvas.width / 8, canvas.height / 2 + 35);
+    context.fillText("Game mechanics:", canvas.width / 8, canvas.height / 2 + 55);
     context.font = "12px Georgia";
-    context.fillText("Press Z to start!", canvas.width / 8, canvas.height / 2 + 60);
+    context.fillText("Effectievness: Weapon/Triangle -> Ball/Circle -> Line/Square ->>", canvas.width / 8, canvas.height / 2 + 75);
+    context.fillText("Press Z to start!", canvas.width / 8, canvas.height - 10);
 }
 
 function DisplayEndMenu(){

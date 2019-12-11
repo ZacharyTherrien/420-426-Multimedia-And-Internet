@@ -8,6 +8,7 @@ class Shape{
     constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
         this.positionX = positionX;
         this.positionY = positionY;
+        this.GenerateRandomStats();
         this.BaseHP = HP;
         this.HP = this.BaseHP;
         this.DisplayHP = this.BaseHP;
@@ -28,8 +29,10 @@ class Shape{
         this.fillTimerEnd = 3;
         this.TurnsFilled = 0;
         this.Moves = Moves.slice(0,3);
+        this.ReceivedSprEfct = false;
     }
 
+    //#region Atk/HP functions
     DisplayDamage(Atk){                 //HP rolls down, decrease actual HP value later. Stronger attacks make it faster!
         let multiplier = 100;           //Used to slow down the speed of which HP decreases!
         this.DisplayHP -= Atk / multiplier;
@@ -39,23 +42,34 @@ class Shape{
     }
 
     ReceiveDamage(Atk){                 //Calculate actual HP value after it rolls down.
-        this.HP -= Atk;                 //TODO: APPLY DEFENSE PLEASE!!
+        if(this.ReceivedSprEfct){
+            this.Def = this.Def / 1.5;
+            console.log("Super on.");
+        }
+        this.HP -= Atk - this.Def / 3;      //Def stat will reduce damage dealt.
         if(this.HP < 0 )
             this.HP = 0;
-    }
-
-    HealHP(HP){
-        this.HP += HP;
-        this.DisplayHP = this.HP;
+        if(this.ReceivedSprEfct){       //If move was super effective, return Def to normal.
+            this.Def *= 1.5;
+            this.ReceivedSprEfct = false;
+            console.log("Super off.");
+        }        
     }
 
     QuickEndAtk(AtkNum){
         this.Moves[AtkNum].AtkStarted = false;
     }
 
+    HealHP(HP){
+        this.HP += HP;
+        this.DisplayHP = this.HP;
+    }
+    //#endregion
+
+    //#region Defend functions
     Defend(){
         console.log(this.Def);
-        this.Def = this.Def + 1;
+        this.Def = this.Def + 10;
         console.log(this.Def);
         this.Defended = true;
     }
@@ -63,7 +77,9 @@ class Shape{
     QuickEndDef(){
         this.Arc = this.ArcFull;
     }
+    //#endregion
 
+    //#region Fill Power functions
     UseFillPower(){
         this.Filled = true;
         this.FillBoost();
@@ -83,9 +99,9 @@ class Shape{
         console.log("Atk: " + this.Atk);
         console.log("Def: " + this.Def);
         console.log("Spd: " + this.Spd);
-        this.Atk += this.Atk/4;
-        this.Def += this.Def/4;
-        this.Spd += 2;
+        this.Atk += this.BaseAtk/3;
+        this.Def += this.BaseDef/3;
+        this.Spd += this.BaseSpd/2;
         this.CanFill = false;
         console.log("AFTER:");
         console.log("Atk: " + this.Atk);
@@ -102,10 +118,10 @@ class Shape{
     }
 
     FillEnd(){
-        let Heal = 20;
         this.Atk = this.BaseAtk;
         this.Def = this.BaseDef;
         this.Spd = this.BaseSpd;
+        let Heal = 20;
         this.HealHP(Heal);
         console.log("ENDING:");
         console.log("Atk: " + this.Atk);
@@ -116,6 +132,11 @@ class Shape{
     QuickEndFill(){
         this.fillTimer = this.fillTimerEnd;
     }
+    //#endregion
+
+    GenerateRandomStats(){
+
+    }
 }
 
 class Rectangle extends Shape{
@@ -124,6 +145,15 @@ class Rectangle extends Shape{
         this.Width = 50;
         this.Height = 50;
     }
+
+    //#region Calculate move effectivess (receiving end)
+    CheckEffectiveness(Type){                                   //If effective, display & reduce Def.
+        if(Type == AtkType.Ball || Type == AtkType.Light){
+            this.DisplaySuperEffective();
+            this.ReceivedSprEfct = true;
+        }
+    }
+    //#endregion
 
     //#region Draw functions
     draw(){
@@ -143,6 +173,13 @@ class Rectangle extends Shape{
 
     DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
         return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX+(this.Width/2), this.positionY-20, velocity);
+    }
+
+    DisplaySuperEffective(){
+        context.fillStyle = "#ff3b3b";
+        context.font = "20px Georgia";
+        context.fillText("Effective!", this.positionX - 5, this.positionY - 10);
+        context.fillStyle = "#000000";
     }
 
     DrawDef(){
@@ -199,6 +236,16 @@ class Triangle extends Shape{
         this.Base = 50
         this.Height = 40;
     }
+    
+    //#region Calculate move effectivess (receiving end)
+    CheckEffectiveness(Type){                                   //If effective, display & reduce Def.
+        if(Type == AtkType.Line || Type == AtkType.Light){
+            this.DisplaySuperEffective();
+            this.ReceivedSprEfct = true; 
+        }
+    }
+    //#endregion
+
     //#region Draw functions
     draw(){
         if(!this.Filled){
@@ -228,6 +275,13 @@ class Triangle extends Shape{
 
     DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
         return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX, this.positionY, velocity);
+    }
+
+    DisplaySuperEffective(){
+        context.fillStyle = "#ff3b3b";
+        context.font = "20px Georgia";
+        context.fillText("Effective!", this.positionX - 25, this.positionY - 10);
+        context.fillStyle = "#000000";
     }
 
     DrawDef(){
@@ -286,6 +340,15 @@ class Circle extends Shape{
         this.positionY += 15;
     }
 
+    //#region Calculate move effectivess (receiving end)
+    CheckEffectiveness(Type){                                   //If effective, display & reduce Def.
+        if(Type == AtkType.Weapon || Type == AtkType.Light){
+            this.DisplaySuperEffective();
+            this.ReceivedSprEfct = true;
+        }
+    }
+    //#endregion
+
     //#region 
     draw(){
         if(!this.Filled){
@@ -304,8 +367,20 @@ class Circle extends Shape{
         this.displaysStats(this.Radius/1.5 * -1);
     }
 
+    displaysStats(adjust = 0){                    
+        context.font = "10px Georgia";                          
+        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Radius + 20);
+    }
+
     DrawAtk(AtkNum, x1, y1, x2, y2, velocity){
         return this.Moves[AtkNum].drawAtk(x1, y1, x2, y2, this.positionX + (this.Radius/2), this.positionY - (this.Radius/2), velocity);
+    }
+
+    DisplaySuperEffective(){
+        context.fillStyle = "#ff3b3b";
+        context.font = "20px Georgia";
+        context.fillText("Effective!", this.positionX - 35, this.positionY - 40);
+        context.fillStyle = "#000000";
     }
 
     DrawDef(){
@@ -334,11 +409,6 @@ class Circle extends Shape{
             return true;
         }
         return false;
-    }
-
-    displaysStats(adjust = 0){                    
-        context.font = "10px Georgia";                          
-        context.fillText(`HP: ${this.DisplayHP.toFixed(0)}/${this.BaseHP}`, this.positionX - 5 + adjust, this.positionY + this.Radius + 20);
     }
     //#endregion
 
