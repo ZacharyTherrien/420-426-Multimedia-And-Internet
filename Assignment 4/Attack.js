@@ -1,12 +1,10 @@
 class Attack{
-    constructor(Name, AtkValue, Description){
+    constructor(Name, AtkValue, Description, Colour = "#808080"){
         this.Name = Name;
         this.AtkValue = AtkValue;
         this.Description = Description;
-    }
-
-    SetColour(Colour){
         this.Colour = Colour;
+        this.DefaultColour = "#000000";
     }
 
     drawAtk(targetX1, targetY1, targetX2, targetY2, startX, starty, vModifier){
@@ -16,16 +14,9 @@ class Attack{
     }
 }
 
-
-        //FOR P TO E YOU CHECK ATTACK X2 TO E X2
-        //FOR E TO P YOU CHECK ATTACK X1 TO P X1
-
-
-        //AS OF NOW, ONLY THE WEAPONATTACKS COLLISION WORKS!
-
 class WeaponAttack extends Attack{
-    constructor(Name, AtkValue, Description){
-        super(Name, AtkValue, Description);
+    constructor(Name, AtkValue, Description, Colour){
+        super(Name, AtkValue, Description, Colour);
         this.x;
         this.y;
         this.length = 30;
@@ -48,7 +39,9 @@ class WeaponAttack extends Attack{
     }
 
     animateAtk(){   //Draw the actual drawing only here!
+        context.strokeStyle = this.Colour;
         context.strokeRect(this.x, this.y, this.length, this.length);
+        context.strokeStyle = this.DefaultColour;
     }
 
     HitTarget(Character, endX1, endY1, endX2, endY2){               //Check if it has reached the target!
@@ -71,8 +64,8 @@ class WeaponAttack extends Attack{
 }
 
 class BallAttack extends Attack{
-    constructor(Name, AtkValue, Description){
-        super(Name, AtkValue, Description);
+    constructor(Name, AtkValue, Description, Colour){
+        super(Name, AtkValue, Description, Colour);
         this.x;
         this.y;
         this.radius = 20;
@@ -96,23 +89,26 @@ class BallAttack extends Attack{
 
     animateAtk(){   //Draw the actual drawing only here!
         context.beginPath();
-        context.strokeStyle = "#00FFFF";
+        context.strokeStyle = this.Colour;
         context.arc(this.x,this.y,this.radius,0,2*Math.PI);
         context.closePath();
         context.stroke();
-        context.strokeStyle = "#000000";
+        context.strokeStyle = this.DefaultColour;
     }
 
     HitTarget(Character, endX1, endY1, endX2, endY2){      //Check if it has reached the target!
         if(Character > 0){
-            if(this.x >= endX1 && this.x <= endX2 && this.y >= endY1 && this.y <= endY2
+            if(this.x + this.radius >= endX1 && this.y >= endY1 
                 || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
                     this.AtkStarted = false;
                     return true;
                 }
         }
         else{
-
+            if(this.x <= endX2 && this.y + this.radius <= endY2
+                || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+                    return true;
+                }
         }
         return false;
     }

@@ -57,7 +57,6 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
 
 /*
  *      TODO: 
- *      - Solidify Attack collision.
  *      - Add new attacks.
  *        New class types:
  *        - Line (neutral all): Star Finger, DB power pole
@@ -66,8 +65,9 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
  *        - Square?: Magic missile, yeet block
  *      - ADD SOUND
  *      - IMPLEMENT TYPE ADVANTAGE
- *      - ADJUST RECEIVING DAMAGE WITH DEFENCE
+ *      - Use eNums for the different type.     
  *      - ADD MORE EXPLANATIONS TO MAIN MENU
+ *      - ADJUST RECEIVING DAMAGE WITH DEFENCE
  * 
  *      - ANIMATION GLITCH DOING AFTER???? MUST FIX AFTERWARDS!!!
  *          UNRELATED TO FILL POWER.
@@ -85,6 +85,7 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
  *      TODO EXTRA (POST BASE GAME):
  *      - COLOUR MAIN MENU OPTIONS
  *      - WRITE, IN COMMENTS, WHERE ARRAY METHODS ARE.
+ *      - ADD MORE COMMENTS PLEASE!
  *      - TELL USE FILL POWER HAS ENDED, DISPLAY HEALED HP TOO.
  */
 
@@ -160,7 +161,7 @@ function MatchInitiation(){             //Initialize all these variables once a 
 }
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
-    const PlayerMoves = [AttackList[4], AttackList[1], AttackList[2]];
+    const PlayerMoves = [AttackList[0], AttackList[1], AttackList[2]];
     const EnemyMoves = [AttackList[1], AttackList[1], AttackList[1]];
     Player = new Circle(PLAYER_X, PLAYER_Y, 200, 20, 30, -1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
     Enemy = new Triangle(ENEMY_X, ENEMY_Y, 200, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
