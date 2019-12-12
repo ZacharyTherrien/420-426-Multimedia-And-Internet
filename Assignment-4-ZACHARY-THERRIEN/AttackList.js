@@ -5,7 +5,7 @@
 //  - Atk value
 //  - Type
 
-const AttackList = [
+const AttackList = [                    //List of all possible moves for a shape to use.
     new WeaponAttack('Sword Poke', 25,
     [AtkStat(25), TypeStat("Weapon"), "Some simple attack.", "One simply pokes."]),
     new WeaponAttack('Magic Missile', 21,
@@ -38,22 +38,22 @@ const AttackList = [
     [AtkStat(150), TypeStat("Light"), "Insert:", "Strong, cool, super OP", "attack here. (tm)"],
     "#cc3300"),
     new LightAttack("World of Light", 200,
-    [AtkStat(10), TypeStat("Light"), "Colours weave into", "a spiral and flame.", "RIP main cast."],
+    [AtkStat(200), TypeStat("Light"), "Colours weave into", "a spiral and flame.", "RIP main cast."],
     "#ecfc03"),
     new LightAttack("Lots of Lava", 100,
     [AtkStat(100), TypeStat("Light"), "Now that's", "a lot of DAMAGE."],
     "#ff0000"),
     new LightAttack('Excalibur!', 500, 
-    [AtkStat(100), TypeStat("Light"), "A shining beam, hope.", "Its name is:" ,"Ex-CALIBUUUR!!"],
+    [AtkStat(500), TypeStat("Light"), "A shining beam, hope.", "Its name is:" ,"Ex-CALIBUUUR!!"],
     "#ffff00"), //Mathematically, neither player should be able to obtain this move.
     // new SpinningLineAttack("Spin Attack!", 100,
     // [AtkStat(100) , "The Hero X thing's", "signature sword attack!", "Originally in 3D."])
 ];
 
-function AtkStat(AtkValue){
+function AtkStat(AtkValue){     //Formally display an attacks's strength.
     return `Atk: ${AtkValue}`;
 }
 
-function TypeStat(Type){
+function TypeStat(Type){        //Formally display an attack's type.
     return `Type: ${Type}`;
 }

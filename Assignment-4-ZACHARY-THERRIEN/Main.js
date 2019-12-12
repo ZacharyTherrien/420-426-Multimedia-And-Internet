@@ -56,10 +56,9 @@ const numClasses = 3;               //Represents the total number of classes of 
 //#endregion
 /************************************************************************/
 
+//#region TODOs
 /*
  *      TODO: 
- *      - WRITE, IN COMMENTS, WHERE ARRAY METHODS ARE.
- *      - ADD MORE COMMENTS PLEASE!
  * 
  *      - ANIMATION GLITCH DOING AFTER???? MUST FIX AFTERWARDS!!!
  *          UNRELATED TO FILL POWER.
@@ -77,6 +76,10 @@ const numClasses = 3;               //Represents the total number of classes of 
  *      - COLOUR MAIN MENU OPTIONS
  *      - TELL USE FILL POWER HAS ENDED, DISPLAY HEALED HP TOO.
  * 
+ */
+//#endregion
+ 
+/*
  *  =================================================================
  *  =================================================================
  *  =================================================================

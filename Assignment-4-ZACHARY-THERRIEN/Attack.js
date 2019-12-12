@@ -17,7 +17,7 @@ class Attack{
         return this.HitTarget(vModifier, targetX1, targetY1, targetX2, targetY2);
     }
 
-    defaultStartAtk(startX, startY){
+    defaultStartAtk(startX, startY){    //Called to set position of attack animation at the start.
         this.x = startX;
         this.y = startY;
         this.AtkStarted = true;
@@ -108,8 +108,8 @@ class BallAttack extends Attack{
         context.strokeStyle = this.DefaultColour;
     }
 
-    HitTarget(Character, endX1, endY1, endX2, endY2){      //Check if it has reached the target!
-        if(Character > 0){
+    HitTarget(Character, endX1, endY1, endX2, endY2){       //Check if it has reached the target!
+        if(Character > 0){                                  //Check Player attack to Enemy.
             if(this.x + this.radius >= endX1 && this.y >= endY1 
                 || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
                     this.AtkStarted = false;
@@ -117,7 +117,7 @@ class BallAttack extends Attack{
                     return true;
                 }
         }
-        else{
+        else{                                               //Check Enemy attack to Player.
             if(this.x <= endX2 && this.y + this.radius <= endY2
                 || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
                     this.AtkStarted = false;
@@ -189,6 +189,8 @@ class LineAttack extends Attack{
     //#endregion
 }
 
+//#region Unsued sword spin atk
+/*
 class SpinningLineAttack extends Attack{
     constructor(Name, AtkValue, Description, Colour, Velocity){
         super(Name, AtkValue, Description, Colour, Velocity);
@@ -216,7 +218,7 @@ class SpinningLineAttack extends Attack{
     }
 
     animateAtk(){   
-        /*The hilt is to find the back of the line. Needed to use the sword's tip as its x & y!*/
+        //The hilt is to find the back of the line. Needed to use the sword's tip as its x & y!
         //BE CAREFUL WITH ROTATE. AFTER ROTATING, THAT IS THE NEW DIRECTION THAT YOU MOVE IN!
         let hiltX = this.x - (Math.cos(this.directionX * Math.PI/180) * this.length * this.CaptureV);
         let hiltY = this.y + (Math.sin(this.directionY * Math.PI/180) * this.length * this.CaptureV);
@@ -254,6 +256,8 @@ class SpinningLineAttack extends Attack{
     }
     //#endregion
 }
+*/
+//#endregion
 
 class LightAttack extends Attack{
     constructor(Name, AtkValue, Description, Colour, Velocity){
