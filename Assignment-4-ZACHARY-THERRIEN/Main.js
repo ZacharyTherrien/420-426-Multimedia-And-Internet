@@ -50,13 +50,16 @@ let BattlePhaseStarted = false;
 let PlayerGoesFrst = true;
 let AttackOrderDecided = false;
 let MoveAnimated = false;           //Indicates if move's drawing has been completed.
-let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have been done or not.
+let NumMovesThisTurn = 0;           //Max is 2, indicates if both attacks have been done or not.
+const numClasses = 3;               //Represents the total number of classes of shapes.
+
 //#endregion
 /************************************************************************/
 
 /*
  *      TODO: 
- *      - ADD SOUND    
+ *      - WRITE, IN COMMENTS, WHERE ARRAY METHODS ARE.
+ *      - ADD MORE COMMENTS PLEASE!
  * 
  *      - ANIMATION GLITCH DOING AFTER???? MUST FIX AFTERWARDS!!!
  *          UNRELATED TO FILL POWER.
@@ -65,18 +68,28 @@ let NumMovesThisTurn = 0;         //Max is 2, indicates if both attacks have bee
  *          THI IS OCCURING DUE TO BALL INSTANCE ATTACKS.
  * 
  *      TODO AFTER:
- *      - FIX ANIMATIONS
  *      - ADD AN ANIMATION FOR FILL POWER.
  *      - CREATE BETTER ANIMATIONS
  *      - IMPLEMENT CRITICAL HITS
- *      - IF PLAYERS TRY TO FILL POWER W/O UNLOCKING IT, DENY SOUND
  * 
  *      TODO EXTRA (POST BASE GAME):
  *      - TRY TO ADD SPIN ATTACKS.
  *      - COLOUR MAIN MENU OPTIONS
- *      - WRITE, IN COMMENTS, WHERE ARRAY METHODS ARE.
- *      - ADD MORE COMMENTS PLEASE!
  *      - TELL USE FILL POWER HAS ENDED, DISPLAY HEALED HP TOO.
+ * 
+ *  =================================================================
+ *  =================================================================
+ *  =================================================================
+ * 
+ *      FOR THE TEACHER, HERE ARE THE FOLLOWING FILES AND LINES
+ *      IN ORDER TO FIND THE ARRAY METHODS USED:
+ * 
+ *      - Main.js (.push) -> line 176 & 291
+ *      - Main.js (.pop)  -> line 178
+ * 
+ *  =================================================================
+ *  =================================================================
+ *  =================================================================
  */
 
 //#region /********************* MAIN GAME ******************************/
@@ -103,7 +116,7 @@ function animate(){
         if(!ChoosingAtk)
             MenuDraw();         //Draw current menu for player.
         else
-            MenuAtkDraw();
+            MenuAtkDraw();      //If attack chosen, display attack menu.
         if(!Battling){
             CursorUpdate();     //This will check the key pressed.
             CursorDraw();       //This will move according to what's pressed.
@@ -115,10 +128,10 @@ function animate(){
         /*********************** BATTLE PHASE ************************/
         if(Battling){           //True once a move is chosen.  
             if(!BattlePhaseStarted){
-                InitiateBattle();
+                InitiateBattle();   
                 ChooseEnemyAtk();
             }     
-            PerformMoves();
+            PerformMoves();     //Here is where it goes to do everything attack related.
             if(!Battling)
                 EndBattlePhase();
         }
@@ -148,17 +161,49 @@ function MatchInitiation(){             //Initialize all these variables once a 
     choice = 0;
     turn = 1;
     key = '';
+    soundStart.play();
 }
 
 function CreateCharacters(){            //Initialize moves for both player and enemies, then create them at start.
-    const PlayerMoves = [AttackList[8], AttackList[5], AttackList[2]];
-    const EnemyMoves = [AttackList[1], AttackList[1], AttackList[1]];
-    Player = new Circle(PLAYER_X, PLAYER_Y, 200, 20, 30, 1, 5, '#FF0000', PlayerMoves, PLAYER_X, PLAYER_Y);
-    Enemy = new Triangle(ENEMY_X, ENEMY_Y, 400, 20, 30, 0, 5, '#FF0000', EnemyMoves, ENEMY_X, ENEMY_Y);
+    PlayerMoves = GenerateRandomMoveset();
+    EnemyMoves = GenerateRandomMoveset();
+    Player = GenerateRandomCharacter(Player, PLAYER_X, PLAYER_Y, PlayerMoves);
+    Enemy = GenerateRandomCharacter(Enemy, ENEMY_X, ENEMY_Y, EnemyMoves);
 }
 
-function GenerateMovesList(){
+function GenerateRandomMoveset(){
+    let Moveset = new Array();              //Array to hold moveset as it's created.
+    let rndmMove;                           //Holds index of a randomly chosen move.
+    for(let i = 0; i < CHOICEMAX; i++){
+        rndmMove = Math.floor(Math.random() * (AttackList.length - 1) + 0.09);
+        Moveset.push(AttackList[rndmMove]);                     //Add move, based on index, from the attack list.
+        for(let j = 0; j < i; j++){
+            if(Moveset[i].Name == Moveset[j].Name && j != i){   //If matching move, aside itself, found: remove and obtain another move.
+                Moveset.pop();
+                i--;
+            }
+        }
+    }
+    return Moveset;
+}
 
+function GenerateRandomCharacter(Character, x, y, moves){               //Randomly generate new player/enemy as a shape.
+    let rndmShape = Math.floor((Math.random() - 0.01) * numClasses);    //Ensure index is round down between 0 - 2.
+    switch (rndmShape){
+        case 0:
+            Character = new Rectangle(x, y, moves);
+            break;
+        case 1:
+            Character = new Triangle(x, y, moves);
+            break;
+        case 2:
+            Character = new Circle(x, y, moves);
+            break;
+        default:                                                        //In case somehow error, default to square.
+            Character = new Rectangle(x, y, moves);
+            break;
+    }
+    return Character;
 }
 
 function TurnDraw(){                    //Draws the current turn at top left corner of canvas.
@@ -171,38 +216,40 @@ function AcceptButtonPressed(){         //Checks if any of the following buttons
     return key == 'z' || key == 'Z';    //These are confirm buttons.
 }
 
-function SkipButtonPressed(){
+function SkipButtonPressed(){           //Like accept, however skips animations.
     console.log(key);
     return key == 'x' || key == 'X';
 }
 
-function MenuSelect(){                  //Initial Menu selection.
+function MenuSelect(){                      //Initial Menu selection.
     if(AcceptButtonPressed() && !Battling){
         switch(choice){
             case MenuOptions.Attack:
-                ChoosingAtk = true;     //Open attack menu.
+                ChoosingAtk = true;         //Open attack menu.
+                soundsChoice.play();
                 break;
             case MenuOptions.Defend:
-                Battling = true;        //Go to battle phase, perform defense.
+                Battling = true;            //Go to battle phase, perform defense.
+                soundsChoice.play();
                 break;
             case MenuOptions.FillPower:
-                if(enabledFillPower && Player.CanFill)
+                if(enabledFillPower && Player.CanFill){
                     Battling = true;        //Go to battle phase, FillPower.
+                    soundsChoice.play();
+                }
                 else{
-                    //***********************************
-                    //MAKE A LOUD CONSOLE.BEEP DENY!!!
-                    //***********************************
+                    soundDenyChoice.play();
                     console.log('Cannot fill power at the moment.');
                 }
                 break;
             case MenuOptions.Flee:
-                Lost = true;            //Auto lose, launched to start menu.
+                Lost = true;                //Auto lose, launched to start menu.
                 break;
         }
     }
 }
 
-function AtkSelect(){                   //Choose one of three of your attack to use, based on where accept is clicked.
+function AtkSelect(){                           //Choose one of three of your attack to use, based on where accept is clicked.
     if(AcceptButtonPressed() && !Battling){
         switch(choice){
             case 0:
@@ -219,9 +266,10 @@ function AtkSelect(){                   //Choose one of three of your attack to 
                 choice = MenuOptions.Attack;    //Insead, go back to previous selection menu.
                 break;
         }
+        soundsChoice.play();
     }
 }
-function EndBattlePhase(){
+function EndBattlePhase(){      //Actions to check after every battle phase.
     turn++;
     if(Player.Filled)
         Player.FillCheckEnd();
@@ -233,7 +281,7 @@ function EndPhase(){            //After every iteration, check if someone was de
     if(Enemy.HP <= 0){
         Won = true;
         numWins++;
-        MenuDescriptions[MenuOptions.FillPower] = ['Fill your shape with',
+        MenuDescriptions[MenuOptions.FillPower] = ['Fill your shape with',  //Once player wins, unlock Fill Power!
         'POWER!!',
         'Once per duel:',
         'This will boost your', 
@@ -273,7 +321,7 @@ function DisplayEndResult(){    //End result screen, prints winner and leaves pl
 //#endregion
 /************************************************************************/
 
-//#region /****************************** BATTLE FUNCTIONS ****************************/
+//#region /***************************** BATTLE FUNCTIONS *****************************/
 function InitiateBattle(){
     BattlePhaseStarted = true;
     NumMovesThisTurn = 0;
@@ -391,6 +439,7 @@ function DefendAction(){
             NumMovesThisTurn++;
             if(PlayerAttacking)
                 ChoosingAtk = true;
+            soundDefend.play();
             console.log("Defence:" + Player.Def);
         }
     }
@@ -425,6 +474,7 @@ function FillPowerAction(){
             NumMovesThisTurn++;
             if(PlayerAttacking)
                 ChoosingAtk = true;
+            soundFillPower.play();
         }
     }
 }
@@ -448,7 +498,7 @@ function AttackAction(){            //Here, it will display the attack descripti
             MoveAnimated = Player.DrawAtk(choice, Enemy.HitBoxX1(), Enemy.HitBoxY1(), Enemy.HitBoxX2(), Enemy.HitBoxY2(), 1);
             SkipAtkAnimation(Player);
         }
-        else                        //Display & calculate damage only after animation. 
+        else                                        //Display & calculate damage only after animation. 
             AnimateDamage();
     }
     else{
@@ -465,6 +515,7 @@ function SkipAtkAnimation(Character){   //If x or X are pressed during an attack
     if(SkipButtonPressed()){
         console.log('SKIPPED!');
         Character.QuickEndAtk(choice);
+        soundHit.play();                //Make sure hit sound plays, even if they skipped.
         MoveSkipped = true;
         key == '';
     }
@@ -473,25 +524,25 @@ function SkipAtkAnimation(Character){   //If x or X are pressed during an attack
 function AnimateDamage(){                   //Display and animate the HP rolling down.
     let Damage
     if(PlayerAttacking){
-        Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue, Enemy);        
-        if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){ //Display HP rolling down till reaches end or 0.
+        Damage = CalculateDamage(Player.Atk, Player.Moves[choice].AtkValue, Enemy); //Find how many damage is dealt in order to find how much to roll down.
+        if(Enemy.DisplayHP > Enemy.HP - Damage && Enemy.DisplayHP > 0){             //Display HP rolling down till reaches end or 0.
             Enemy.CheckEffectiveness(Player.Moves[choice].Type);
             Enemy.DisplayDamage(Damage);
         }
-        else{                                                           //Once HP reached by rolling or 0.
+        else{                                                                       //Once HP reached by rolling or 0.
             let trueDamage = Player.Atk + Player.Moves[choice].AtkValue;
             console.log(Enemy.Def);
-            Enemy.ReceiveDamage(trueDamage);                                //Set their actual HP to what it is after damage calculation.
+            Enemy.ReceiveDamage(trueDamage);                                        //Set their actual HP to what it is after damage calculation.
             console.log(Enemy.Def);
-            PlayerAttacking = false;                                    //Player done attack, now no longer attacking.
-            choice = 0;                                                 //Set their choice to start.
-            DrawingMove = false;                                        //No longer drawing attack/rolling down HP.
+            PlayerAttacking = false;                                                //Player done attack, now no longer attacking.
+            choice = 0;                                                             //Set their choice to start.
+            DrawingMove = false;                                                    //No longer drawing attack/rolling down HP.
             MoveSkipped = false;
             MoveAnimated = false;
-            NumMovesThisTurn++;
+            NumMovesThisTurn++;                                                     //Update count that a move has been done so far this turn.
         }
     }
-    else{
+    else{                                                                           //Apply but now for Player being Damaged.
         Damage = CalculateDamage(Enemy.Atk, Enemy.Moves[choiceEnemy].AtkValue, Player);
         if(Player.DisplayHP > Player.HP - Damage && Player.DisplayHP > 0){
             Player.CheckEffectiveness(Enemy.Moves[choiceEnemy].Type);
@@ -502,7 +553,7 @@ function AnimateDamage(){                   //Display and animate the HP rolling
             console.log(Player.Def);
             Player.ReceiveDamage(trueDamage);
             console.log(Player.Def);
-            PlayerAttacking = true;
+            PlayerAttacking = true;                                                 //Enemy done attacking, either no more batling or player goes now.
             DrawingMove = false;
             MoveAnimated = false;
             MoveSkipped = false;
@@ -511,18 +562,18 @@ function AnimateDamage(){                   //Display and animate the HP rolling
     }
 }
 
-function CalculateDamage(CharacterAtk, MoveAtk, Receiver){      //TODO: CALCULATE FOR SUPER EFFECTIVE HITS AND CHANCE OF CRITS!!
+function CalculateDamage(CharacterAtk, MoveAtk, Receiver){      //Find how much damage dealt.
     let tempDef = Receiver.Def;
     if(Receiver.ReceivedSprEfct){
         tempDef = tempDef / 1.5;
     }
-    return CharacterAtk + MoveAtk  - tempDef / 3;
+    return CharacterAtk + MoveAtk  - tempDef / 3;               //Calculate late damage dealt with defence.
 }
 //#endregion
 /**************************************************************************************/
 
 //#region /***************************** CURSOR FUNCTIONS *****************************/
-function CursorUpdate(){
+function CursorUpdate(){        //Based on key pressed, update cursor position value.
     switch(key){
         case 'ArrowUp':
             choice--;
@@ -537,11 +588,11 @@ function CursorUpdate(){
             choice = CHOICEMAX;
             break;
     }
-    if(choice < CHOICEMIN)  //Passes top boundary, wrap to bottom.
+    if(choice < CHOICEMIN)      //Passes top boundary, wrap to bottom.
         choice = CHOICEMAX;
     else if(choice > CHOICEMAX) //Passes bottom boundary, wrap to top.
         choice = CHOICEMIN;
-    if(!ChoosingAtk) //Display a description of what the user's cursor is hovering over.
+    if(!ChoosingAtk)            //Display a description of what the user's cursor is hovering over.
         CurrentDescription = MenuDescriptions[choice];
     else
         if(choice != 3)
@@ -549,7 +600,7 @@ function CursorUpdate(){
         else 
         CurrentDescription = GoBackDescription;
 }
-function CursorDraw(){
+function CursorDraw(){          //Based on current option, set cursor position.
     context.beginPath();
     context.moveTo(MENU_X+5,MENU_Y + (choice * 15) + 10);
     context.lineTo(MENU_X+10,MENU_Y +(choice * 15) + 15);
@@ -594,10 +645,7 @@ function DescriptionDraw(Description){                              //Takes stri
 function DescriptionBox(){
     context.strokeRect(DESC_X,DESC_Y,MENU_WIDTH-1,MENU_HEIGHT);
 }
-function DisplayMainMenu(){                                         //Print the whole start menu here.                                    //Print the whole start menu here.
-    // context.font = "20px Georgia";
-    // context.fillStyle = "Red";
-    // context.fillText("PLEASE ADD TO MENU LATER!",30,30);
+function DisplayMainMenu(){                                         //Print the whole start menu here.
     context.fillStyle = "Black";
     context.font = "30px Georgia";
     context.fillText("Welcome to ShapeDown!", canvas.width / 8, canvas.height / 3);

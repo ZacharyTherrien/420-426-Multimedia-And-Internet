@@ -36,7 +36,7 @@ class WeaponAttack extends Attack{
         this.Type = AtkType.Weapon;
     }
 
-    //#region 
+    //#region Methods
     CalculateSpot(startX, startY, vModifier){
         if(!this.AtkStarted){       //If it has just begun, set starting position.
             this.defaultStartAtk(startX, startY);
@@ -58,14 +58,16 @@ class WeaponAttack extends Attack{
             if(this.x + this.length >= endX1 && this.y >= endY1 || 
                this.x < 0 || this.y < 0 || this.x + this.length > canvas.width || this.y + this.length> canvas.height){
                     this.AtkStarted = false;
+                    soundHit.play();
                     return true;
                 }
         }
         else{                                                       //Check Enemy attack to Player
             if(this.x <= endX2 && this.y + this.length <= endY2 ||
                this.x < 0 || this.y < 0 || this.x + this.length > canvas.width || this.y + this.length> canvas.height){
-                this.AtkStarted = false;
-                return true;
+                    this.AtkStarted = false;
+                    soundHit.play();
+                    return true;
             }
         }
         return false;
@@ -111,12 +113,15 @@ class BallAttack extends Attack{
             if(this.x + this.radius >= endX1 && this.y >= endY1 
                 || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
                     this.AtkStarted = false;
+                    soundHit.play();
                     return true;
                 }
         }
         else{
             if(this.x <= endX2 && this.y + this.radius <= endY2
                 || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+                    this.AtkStarted = false;
+                    soundHit.play();
                     return true;
                 }
         }
@@ -166,12 +171,16 @@ class LineAttack extends Attack{
         if(Character > 0){              //Player to Enemy Attack.
             if(this.x >= endX1 && this.y >= endY1
             || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+                this.AtkStarted = false;
+                soundHit.play();
                 return true;
             }
         }
         else{                           //Enemy attacking Player.
             if(this.x <= endX2 && this.y <= endY2
             || this.x < 0 || this.y < 0 || this.x > canvas.width || this.y > canvas.height){
+                this.AtkStarted = false;
+                soundHit.play();
                 return true;
             }
         }
@@ -261,6 +270,7 @@ class LightAttack extends Attack{
         if(!this.AtkStarted){
             this.defaultStartAtk(startX,startY);
             this.AtkStarted = true;
+            this.Timer = 0;
         }
     }
 
@@ -277,8 +287,11 @@ class LightAttack extends Attack{
         let aFrame = 1/60;          
         const Duration = 1.5;
         this.Timer += aFrame;
-        if(this.Timer >= Duration)    //"HitTarget", for this move depends on time, not collision.
+        if(this.Timer >= Duration){     //"HitTarget", for this move depends on time, not collision.
+            this.AtkStarted = false;
+            soundHit.play();
             return true;                //After two sweconds, end animation.  
+        }
         return false;
     }
 }

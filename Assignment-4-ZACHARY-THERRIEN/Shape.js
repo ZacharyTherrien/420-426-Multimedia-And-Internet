@@ -5,21 +5,10 @@
 //////////////////////////////////////////////////////////////
 
 class Shape{
-    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
+    constructor(positionX, positionY, Moves){
         this.positionX = positionX;
         this.positionY = positionY;
         this.GenerateRandomStats();
-        this.BaseHP = HP;
-        this.HP = this.BaseHP;
-        this.DisplayHP = this.BaseHP;
-        this.BaseAtk = Atk;
-        this.Atk = this.BaseAtk;
-        this.BaseDef = Def;
-        this.Def = this.BaseDef;
-        this.BaseSpd = Spd;
-        this.Spd = this.BaseSpd;
-        this.Sides = Sides;
-        this.Colour = Colour;
         this.Defended = true;
         this.Arc = 0;
         this.ArcFull = 2 * Math.PI;
@@ -30,6 +19,18 @@ class Shape{
         this.TurnsFilled = 0;
         this.Moves = Moves.slice(0,3);
         this.ReceivedSprEfct = false;
+    }
+
+    GenerateRandomStats(){
+        this.BaseHP = Math.floor(Math.random() * 300 + 100);
+        this.HP = this.BaseHP;
+        this.DisplayHP = this.BaseHP;
+        this.BaseAtk = Math.floor(Math.random() * 50 + 10);
+        this.Atk = this.BaseAtk;
+        this.BaseDef  = Math.floor(Math.random() * 50 + 10);
+        this.Def = this.BaseDef;
+        this.BaseSpd = Math.floor(Math.random() * 10);
+        this.Spd = this.BaseSpd;
     }
 
     //#region Atk/HP functions
@@ -133,15 +134,11 @@ class Shape{
         this.fillTimer = this.fillTimerEnd;
     }
     //#endregion
-
-    GenerateRandomStats(){
-
-    }
 }
 
 class Rectangle extends Shape{
-    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
-        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
+    constructor(positionX, positionY, Moves){
+        super(positionX, positionY, Moves);
         this.Width = 50;
         this.Height = 50;
     }
@@ -231,8 +228,8 @@ class Rectangle extends Shape{
 }
 
 class Triangle extends Shape{
-    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
-        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
+    constructor(positionX, positionY, Moves){
+        super(positionX, positionY, Moves);
         this.Base = 50
         this.Height = 40;
     }
@@ -333,8 +330,8 @@ class Triangle extends Shape{
 }
 
 class Circle extends Shape{
-    constructor(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves){
-        super(positionX, positionY, HP, Atk, Def, Spd, Sides, Colour, Moves);
+    constructor(positionX, positionY, Moves){
+        super(positionX, positionY, Moves);
         this.Radius = 35;
         this.positionX += 15;
         this.positionY += 15;
@@ -379,7 +376,7 @@ class Circle extends Shape{
     DisplaySuperEffective(){
         context.fillStyle = "#ff3b3b";
         context.font = "20px Georgia";
-        context.fillText("Effective!", this.positionX - 35, this.positionY - 40);
+        context.fillText("Effective!", this.positionX - 40, this.positionY - 20);
         context.fillStyle = "#000000";
     }
 
