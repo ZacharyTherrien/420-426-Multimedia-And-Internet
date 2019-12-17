@@ -17,8 +17,9 @@ for(let num = 0; num < MAX; num++){
         speed = Math.floor((Math.random() * 10)/2);
     if(Math.random() * 100 < 0.5)
         speed = speed * -1;
-    let direction = Math.floor(Math.random()*360);
-    myRectangles[num] = new Rec(x, y, speed, direction);
+    let directionX = Math.floor(Math.random()*360);
+    let directionY = Math.floor(Math.random()*360);
+    myRectangles[num] = new Rec(x, y, speed, directionX, directionY);
 }
 
 function animate(){

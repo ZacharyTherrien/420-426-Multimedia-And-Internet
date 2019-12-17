@@ -1,11 +1,12 @@
 class Rec{
-    constructor(x, y, speed, direction){
+    constructor(x, y, speed, directionX, directionY){
         this.height = 50;
         this.width = 50;
         this.x = x;
         this.y = y;
         this.speed = speed;
-        this.direction = direction;
+        this.directionX = directionX;
+        this.directionY = directionY;
         this.colour = 0;
         this.quadrant = 0;
         this.caught = false;
@@ -24,27 +25,31 @@ class Rec{
     }
 
     draw(){
-        if(!this.caught){
-            if(this.x > 250){
-                if(this.y < 250){
-                    context.strokeStyle = "#eb4034";
+        if(!this.caught){ //Referenced fill style from: https://www.w3schools.com/tags/canvas_fillstyle.asp
+            if(this.x > 125){
+                if(this.y < 50){
+                    console.log("red");
+                    context.fillStyle = "#eb4034";
                 }
-                else{
-                    context.strokeStyle = "#0ecf00";
+                else if (this.y >= 50){
+                    console.log("yellow");
+                    context.fillStyle = "#0ecf00";
                 }
             }
             else{
-                if(this.y < 250)
-                    context.strokeStyle = "#3437eb";
-                else
-                    context.strokeStyle = "#fbff00";
+                if(this.y < 50){
+                    console.log("blue");
+                    context.fillStyle = "#3437eb";
+                }
+                else{
+                    console.log("green");
+                    context.fillStyle = "#fbff00";
+                }
             }
-            //context.beginPath();
-            this.x += Math.cos(this.direction * Math.PI / 180) * this.speed; //Referenced from 7.3-Car-Simulation
-            this.y += Math.sin(this.direction * Math.PI / 180) * this.speed; //Referenced from 7.3-Car-Simulation
+            this.x += Math.cos(this.directionX * Math.PI / 180) * this.speed; //Referenced from 7.3-Car-Simulation
+            this.y += Math.sin(this.directionY * Math.PI / 180) * this.speed; //Referenced from 7.3-Car-Simulation
             context.fillRect(this.x,this.y,this.width,this.height); //Referenced from 7.2-Starting-With-Canvas
-            context.stroke();
-            //context.closePath();
+            context.fillStyle = "#000000";
         }
     }
 
@@ -56,20 +61,20 @@ class Rec{
             this.speed *= -1;
         switch (quadrant){ //Idea for random number Referenced from: https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
             case 1:
-                this.direction = Math.floor((Math.random()*180)) + 180; 
-                console.log(this.direction);
+                this.directionY = Math.floor(Math.random()*178)+1; 
+                this.directionX = Math.floor(Math.random()*360);
                 break;
             case 2:
-                //console.log("up");
-                this.direction = 270 - Math.floor(Math.random()*270);
-                if(this.direction > 360)
-                    this.diretion -= 360;
+                this.directionY = Math.floor(Math.random()*179)+181; 
+                this.directionX = Math.floor(Math.random()*360);
                 break;
             case 3:
-                this.direction = Math.floor(Math.random()*180);
+                this.directionX = Math.floor(Math.random()*90)+1;
+                this.directionY = Math.floor(Math.random()*360);
                 break;
             case 4:
-                this.direction = 180 + Math.floor(Math.random()*180);    
+                this.directionX = Math.floor(Math.random()*90)+181;
+                this.directionY = Math.floor(Math.random()*360);   
                 break;
         }     
     }
