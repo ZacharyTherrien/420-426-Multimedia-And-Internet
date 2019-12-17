@@ -26,23 +26,23 @@ class Rec{
 
     draw(){
         if(!this.caught){ //Referenced fill style from: https://www.w3schools.com/tags/canvas_fillstyle.asp
-            if(this.x > 125){
-                if(this.y < 50){
-                    console.log("red");
+            if(this.x > canvas.width / 2){
+                if(this.y < canvas.height / 2){
+                    //console.log("red");
                     context.fillStyle = "#eb4034";
                 }
-                else if (this.y >= 50){
-                    console.log("yellow");
+                else{
+                    //console.log("yellow");
                     context.fillStyle = "#0ecf00";
                 }
             }
             else{
-                if(this.y < 50){
-                    console.log("blue");
+                if(this.y < canvas.height / 2){
+                    //console.log("blue");
                     context.fillStyle = "#3437eb";
                 }
                 else{
-                    console.log("green");
+                    //console.log("green");
                     context.fillStyle = "#fbff00";
                 }
             }

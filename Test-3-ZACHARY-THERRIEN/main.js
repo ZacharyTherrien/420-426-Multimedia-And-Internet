@@ -1,12 +1,14 @@
 let canvas = document.getElementsByTagName('canvas')[0];
 let context = canvas.getContext('2d');  //Referenced from 7.2-Starting-With-Canvas
-let key;
-const MAX = 1;
+canvas.height = 500;
+canvas.width = 500;
+let key = 0;
+const MAX = 50;
 let countRecs = MAX;
 let time = 0;
 myRectangles = new Array(MAX); //Referenced from 7.2-Starting-With-Canvas
 
-canvas.addEventListener('keydown', Destroy); //Referenced from 7.3-Car-Simulation
+canvas.addEventListener('keypress', Destroy); //Referenced from 7.3-Car-Simulation
 
 //Create circles.
 for(let num = 0; num < MAX; num++){
@@ -25,19 +27,31 @@ for(let num = 0; num < MAX; num++){
 function animate(){
     requestAnimationFrame(animate);
     context.clearRect(0,0,canvas.width,canvas.height); //Referenced from 7.2-Starting-With-Canvas
-    for(Recs of myRectangles){
-        Recs.update();
+    if(myRectangles.length > 0){
+        for(Recs of myRectangles){
+            Recs.update();
+        }
+        if(key == 32){ //Referenced from https://stackoverflow.com/questions/24386354/execute-js-code-after-pressing-the-spacebar/24386518
+            console.log("Del.");   
+            for(let i = 0; i < myRectangles.length; i++){
+                if(myRectangles[i].x > canvas.width / 2 && myRectangles[i].y > canvas.height / 2)
+                    myRectangles.splice(i, 1);
+            }
+        }
+        key = 0;
+        context.font = "24px Arial";
+        context.fillText(`Time: ${time.toFixed(0)}`, canvas.width - 150, 20);
+        time += 0.01;
     }
-    //if(key.keyCode == 32){ //Referenced from https://stackoverflow.com/questions/24386354/execute-js-code-after-pressing-the-spacebar/24386518
-        
-    //}
-    context.font = "12px Arial";
-    context.fillText(`Time: ${time.toFixed(0)}`, 8, 10);
-    time += 0.01;
+    else{
+        context.font = "20px Arial";
+        context.fillText("Game set!", canvas.width/2, canvas.height/2);
+        context.fillText(`Time elapsed: ${time.toFixed(0)}`, canvas.width/2, canvas.height/2+25);
+    }
 }
 
 function Destroy(event){
-    key = event.key;   //Referenced from 7.3-Car-Simulation
+    key = event.keyCode;   //Referenced from 7.3-Car-Simulation
 }
 
 animate();
